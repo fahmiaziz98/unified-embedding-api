@@ -1,0 +1,55 @@
+models:
+  qwen3-0.6b:
+    name: "Qwen/Qwen3-Embedding-0.6B"
+    type: "embeddings"
+    dimension: 1024
+    max_tokens: 32768
+    description: |
+      The Qwen3 Embedding series offer support for over 100 languages, thanks to the multilingual capabilites of Qwen3 models. 
+      This includes various programming languages, and provides robust multilingual, cross-lingual, and code retrieval capabilities.  
+      We recommend that developers customize the instruct according to their specific scenarios, tasks, and languages. 
+      Our tests have shown that in most retrieval scenarios, not using an instruct on the query side can lead to a drop in retrieval 
+      performance by approximately 1% to 5%.
+    language: ["multilingual"]
+    repository: "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B"
+
+  gemma-300M:
+    name: "google/embeddinggemma-300M"
+    type: "embeddings"
+    dimension: 768
+    max_tokens: 2048
+    description: |
+      EmbeddingGemma can generate optimized embeddings for various use cases—such as document retrieval, question answering, 
+      and fact verification—or for specific input types—either a query or a document—using prompts that are prepended to the 
+      input strings. Query prompts follow the form task: {task description} | query: where the task description varies by the use case, 
+      with the default task description being search result. Document-style prompts follow the form title: {title | "none"} | text: 
+      where the title is either none (the default) or the actual title of the document. Note that providing a title, if available, 
+      will improve model performance for document prompts but may require manual formatting.
+    language: ["multilingual"]
+    repository: "https://huggingface.co/google/embeddinggemma-300m"
+
+  multilingual-e5-small:
+    name: "intfloat/multilingual-e5-small"
+    type: "embeddings"
+    dimension: 384
+    max_tokens: 512
+    description: |
+      This model is initialized from microsoft/Multilingual-MiniLM-L12-H384 and continually trained on a mixture of multilingual datasets. 
+      It supports 100 languages from xlm-roberta, but low-resource languages may see performance degradation. 
+      Need instruction, please refer to huggingface repo.
+    language: ["multilingual"]
+    repository: "https://huggingface.co/intfloat/multilingual-e5-small"
+
+  splade-pp-v2:
+    name: "prithivida/Splade_PP_en_v2"
+    type: "sparse-embeddings"
+    dimension: 1234   # must add this field
+    max_tokens: 1234
+    description: |
+      SPLADE models are a fine balance between retrieval effectiveness (quality) and retrieval efficiency (latency and $), 
+      with that in mind we did very minor retrieval efficiency tweaks to make it more suitable for a industry setting. 
+      (Pure MLE folks should not conflate efficiency to model inference efficiency. Our main focus is on retrieval efficiency. 
+      Hereinafter efficiency is a short hand for retrieval efficiency unless explicitly qualified otherwise. 
+      Not that inference efficiency is not important, we will address that subsequently.)
+    language: ["multilingual"]
+    repository: "https://huggingface.co/prithivida/Splade_PP_en_v2"

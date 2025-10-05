@@ -1,0 +1,6 @@
+fastapi==0.116.2
+uvicorn[standard]==0.35.0
+torch==2.8.0
+sentence-transformers==5.1.1
+loguru==0.7.3
+einops==0.8.1

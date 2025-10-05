@@ -45,6 +45,13 @@ unified-embedding-api/
 
 ```
 ---
+## 🧩 Model Selection
+
+Default configuration is optimized for **CPU 2vCPU / 16GB RAM**. See [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard) for memory usage reference.
+
+⚠️ If you plan to use larger models like `Qwen2-embedding-8B`, please upgrade your Space.
+
+---
 
 ## ☁️ How to Deploy (Free 🚀)
 

@@ -1,6 +1,6 @@
 # 🧠 Unified Embedding API
 
-> 🧩 Unified API for all your Embedding & Reranking needs — plug and play with any model from Hugging Face or your own fine-tuned versions. This official repository from huggingface space
+> 🧩 Unified API for all your Embedding & Sparse needs — plug and play with any model from Hugging Face or your own fine-tuned versions. This official repository from huggingface space
 
 ---
 

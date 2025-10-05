@@ -78,7 +78,8 @@ Deploy your **custom Embedding API** on **Hugging Face Spaces** — free, fast, 
 That’s it! You now have a live embedding API endpoint powered by your models.
 
 📘 **Tutorial Reference:**
-[Deploy Applications on Hugging Face Spaces (Official Guide)](https://huggingface.co/blog/HemanthSai7/deploy-applications-on-huggingface-spaces)
+- [Deploy Applications on Hugging Face Spaces (Official Guide)](https://huggingface.co/blog/HemanthSai7/deploy-applications-on-huggingface-spaces)
+- [How-to-Sync-Hugging-Face-Spaces-with-a-GitHub-Repository by Ruslanmv](https://github.com/ruslanmv/How-to-Sync-Hugging-Face-Spaces-with-a-GitHub-Repository?tab=readme-ov-file)
 
 ---
 

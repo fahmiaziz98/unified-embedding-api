@@ -1,3 +1,14 @@
+---
+title: Api Embedding
+emoji: 🐠
+colorFrom: green
+colorTo: purple
+sdk: docker
+pinned: false
+---
+
+Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+
 # 🧠 Unified Embedding API
 
 > 🧩 Unified API for all your Embedding & Sparse needs — plug and play with any model from Hugging Face or your own fine-tuned versions. This official repository from huggingface space

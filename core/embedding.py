@@ -81,7 +81,7 @@ class SparseEmbeddingModel:
     
     def _format_values(self, values: List[float]) -> List[float]:
         """Format float values to a fixed precision."""
-        return [round(float(v), 7) for v in values]
+        return [round(float(v), 8) for v in values]
     
     def load(self) -> None:
         """Load the sparse embedding model."""

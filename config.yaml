@@ -40,6 +40,20 @@ models:
     language: ["multilingual"]
     repository: "https://huggingface.co/intfloat/multilingual-e5-small"
 
+  splade-pp-v1:
+    name: "prithivida/Splade_PP_en_v1"
+    type: "sparse-embeddings"
+    dimension: 1234   # must add this field
+    max_tokens: 1234
+    description: |
+      SPLADE models are a fine balance between retrieval effectiveness (quality) and retrieval efficiency (latency and $), 
+      with that in mind we did very minor retrieval efficiency tweaks to make it more suitable for a industry setting. 
+      (Pure MLE folks should not conflate efficiency to model inference efficiency. Our main focus is on retrieval efficiency. 
+      Hereinafter efficiency is a short hand for retrieval efficiency unless explicitly qualified otherwise. 
+      Not that inference efficiency is not important, we will address that subsequently.)
+    language: ["multilingual"]
+    repository: "https://huggingface.co/prithivida/Splade_PP_en_v1"
+
   splade-pp-v2:
     name: "prithivida/Splade_PP_en_v2"
     type: "sparse-embeddings"

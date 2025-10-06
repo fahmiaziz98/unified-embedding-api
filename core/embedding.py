@@ -79,10 +79,6 @@ class SparseEmbeddingModel:
         self.model: Optional[SparseEncoder] = None
         self._loaded = False
     
-    def _format_values(self, values: List[float]) -> List[float]:
-        """Format float values to a fixed precision."""
-        return [round(float(v), 8) for v in values]
-    
     def load(self) -> None:
         """Load the sparse embedding model."""
         if self._loaded:
@@ -117,7 +113,7 @@ class SparseEmbeddingModel:
             
             return {
                 "indices": indices,
-                "values": self._format_values(values)
+                "values": values
             }
             
 
@@ -151,7 +147,7 @@ class SparseEmbeddingModel:
                     "text": texts[i],
                     "sparse_embedding": {
                         "indices": indices,
-                        "values": self._format_values(values)
+                        "values": values
                     }
                 })
             

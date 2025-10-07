@@ -200,7 +200,7 @@ async def create_embedding(request: EmbedRequest):
             )
 
         # Dense embedding
-        embedding = model.embed_documents(text=[request.text], prompt=request.prompt)[0]
+        embedding = model.embed_documents(texts=[request.text], prompt=request.prompt)[0]
         processing_time = time.time() - start_time
 
         return EmbedResponse(

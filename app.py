@@ -85,6 +85,70 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
+@app.post("/query", response_model=Union[EmbedResponse, SparseEmbedResponse])
+async def create_query(request: EmbedRequest):
+    """Create a single dense or sparse query embedding for the given text.
+
+    The request must include `model_id`. For sparse models (config type
+    "sparse-embeddings") the endpoint returns a `SparseEmbedResponse`,
+    otherwise a dense `EmbedResponse` is returned.
+
+    Args:
+        request: `EmbedRequest` pydantic model with text, prompt and model_id.
+    Returns:
+        Union[EmbedResponse, SparseEmbedResponse]: The embedding response.
+    Raises:
+        HTTPException: on validation or internal errors with appropriate
+            HTTP status codes.
+    """
+    
+    if not request.model_id:
+        raise HTTPException(status_code=400, detail="model_id is required")
+
+    try:
+        assert model_manager is not None
+        model = model_manager.get_model(request.model_id)
+        start_time = time.time()
+
+        config = model_manager.model_configs[request.model_id]
+
+        if config.type == "sparse-embeddings":
+            # Sparse embedding
+            sparse_result = model.query_embed(text=[request.text], prompt=request.prompt)
+            processing_time = time.time() - start_time
+
+            if isinstance(sparse_result, dict) and "indices" in sparse_result:
+                sparse_embedding = SparseEmbedding(
+                    text=request.text,
+                    indices=sparse_result["indices"],
+                    values=sparse_result["values"],
+                )
+            else:
+                raise ValueError(f"Unexpected sparse result format: {sparse_result}")
+
+            return SparseEmbedResponse(
+                sparse_embedding=sparse_embedding,
+                model_id=request.model_id,
+                processing_time=processing_time,
+            )
+
+        # Dense embedding
+        embedding = model.query_embed(text=[request.text], prompt=request.prompt)[0]
+        processing_time = time.time() - start_time
+
+        return EmbedResponse(
+            embedding=embedding,
+            dimension=len(embedding),
+            model_id=request.model_id,
+            processing_time=processing_time,
+        )
+
+    except AssertionError:
+        logger.exception("Model manager is not initialized")
+        raise HTTPException(status_code=500, detail="Server not ready")
+    except Exception:
+        logger.exception("Error creating query embedding")
+        raise HTTPException(status_code=500, detail="Failed to create query embedding")
 
 @app.post("/embed", response_model=Union[EmbedResponse, SparseEmbedResponse])
 async def create_embedding(request: EmbedRequest):
@@ -117,7 +181,7 @@ async def create_embedding(request: EmbedRequest):
 
         if config.type == "sparse-embeddings":
             # Sparse embedding
-            sparse_result = model.embed(request.text, prompt=request.prompt)
+            sparse_result = model.embed_documents(text=[request.text], prompt=request.prompt)
             processing_time = time.time() - start_time
 
             if isinstance(sparse_result, dict) and "indices" in sparse_result:
@@ -136,7 +200,7 @@ async def create_embedding(request: EmbedRequest):
             )
 
         # Dense embedding
-        embedding = model.embed([request.text], request.prompt)[0]
+        embedding = model.embed_documents(text=[request.text], prompt=request.prompt)[0]
         processing_time = time.time() - start_time
 
         return EmbedResponse(

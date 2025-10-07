@@ -1,9 +1,11 @@
 import yaml
 from pathlib import Path
 from loguru import logger
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Union
 from threading import Lock
-from .embedding import ModelConfig, EmbeddingModel, SparseEmbeddingModel
+from .embedding import EmbeddingModel
+from .sparse import SparseEmbeddingModel
+from .config import ModelConfig
 
 class ModelManager:
     """
@@ -20,7 +22,6 @@ class ModelManager:
     def __init__(self, config_path: str = "config.yaml"):
         self.models: Dict[str, Union[EmbeddingModel, SparseEmbeddingModel]] = {}
         self.model_configs: Dict[str, ModelConfig] = {}
-        self.default_model_id: Optional[str] = None
         self._lock = Lock()  # For thread safety
         self._preload_complete = False
         
@@ -39,9 +40,6 @@ class ModelManager:
                 
             for model_id, model_cfg in config["models"].items():
                 self.model_configs[model_id] = ModelConfig(model_id, model_cfg)
-                
-            if "default" in config and "model" in config["default"]:
-                self.default_model_id = config["default"]["model"]
                 
             logger.info(f"Loaded {len(self.model_configs)} model configurations")
             
@@ -140,10 +138,6 @@ class ModelManager:
             "id": config.id,
             "name": config.name,
             "type": config.type,
-            "dimension": config.dimension,
-            "max_tokens": config.max_tokens,
-            "description": config.description,
-            "language": config.language,
             "loaded": is_loaded,
             "repository": config.repository,
         }
@@ -210,7 +204,6 @@ High-performance API for generating text embeddings using multiple model archite
                 loaded_models.append({
                     "id": model_id,
                     "type": self.model_configs[model_id].type,
-                    "dimension": model.config.dimension,
                     "name": model.config.name
                 })
         

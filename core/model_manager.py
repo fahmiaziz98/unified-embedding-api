@@ -142,7 +142,6 @@ class ModelManager:
             "repository": config.repository,
         }
     
-    
     def generate_api_description(self) -> str:
         """Generate a dynamic API description based on available models."""
 

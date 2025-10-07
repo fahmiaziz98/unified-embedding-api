@@ -48,8 +48,8 @@ class EmbeddingModel:
             self.load()
             
         try:
-            embedding = self.model.encode_query(text, prompt=prompt)
-            return embedding[0].tolist()
+            embeddings = self.model.encode_query(text, prompt=prompt)
+            return [embedding.tolist() for embedding in embeddings]
         except Exception as e:
             logger.error(f"Embedding generation failed: {e}")
             raise

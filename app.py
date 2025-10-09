@@ -272,7 +272,7 @@ async def create_batch_embedding(request: BatchEmbedRequest):
             )
 
         # Dense batch embedding
-        embeddings = model.embed(request.texts, request.prompt)
+        embeddings = model.embed_documents(request.texts, request.prompt)
         processing_time = time.time() - start_time
 
         return BatchEmbedResponse(

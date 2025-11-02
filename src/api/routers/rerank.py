@@ -62,11 +62,8 @@ async def rerank_documents(
         )
 
     try:
-        # Extract kwargs but exclude rerank-specific fields
         kwargs = extract_embedding_kwargs(request)
 
-        # Remove fields that are already passed as positional arguments
-        # to avoid "got multiple values for argument" error
         kwargs.pop("query", None)
         kwargs.pop("documents", None)
         kwargs.pop("top_k", None)
@@ -80,19 +77,10 @@ async def rerank_documents(
                 detail=f"Model '{request.model_id}' is not a rerank model. Type: {config.type}",
             )
 
-        # Debug logs BEFORE calling rank_document
-        logger.debug(f"Rerank request - Query: '{request.query}'")
-        logger.debug(f"Documents to rank: {len(valid_docs)}")
-        if valid_docs:
-            logger.debug(f"First document: {valid_docs[0][1][:100]}...")
-        logger.debug(f"Top K: {request.top_k}")
-
         start = time.time()
 
-        # Extract documents for ranking
         documents_list = [doc for _, doc in valid_docs]
-        
-        # Call rank_document - returns only top_k results
+
         ranking_results = model.rank_document(
             query=request.query,
             documents=documents_list,
@@ -102,18 +90,10 @@ async def rerank_documents(
 
         processing_time = time.time() - start
 
-        # Debug logs AFTER rank_document
-        logger.debug(f"Ranking returned {len(ranking_results)} results")
-        if ranking_results:
-            logger.debug(f"Top result score: {ranking_results[0]}")
-
-        # Build results from ranking_results
-        # ranking_results already contains top_k items with scores
         results = []
         
         for rank_result in ranking_results:
-            # Get original index from valid_docs
-            doc_idx = rank_result.get('corpus_id', 0)  # Index in filtered list
+            doc_idx = rank_result.get('corpus_id', 0)  
             if doc_idx < len(valid_docs):
                 original_idx = valid_docs[doc_idx][0]  # Original index
                 doc_text = documents_list[doc_idx]

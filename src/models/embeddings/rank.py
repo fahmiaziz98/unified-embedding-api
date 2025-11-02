@@ -115,8 +115,6 @@ class RerankModel:
             self.load()
         
         try:
-            # model.rank returns List[Dict] with 'corpus_id' and 'score'
-            # Already sorted by score (highest first) and limited to top_k
             ranking_results = self.model.rank(
                 query, 
                 documents, 
@@ -157,14 +155,11 @@ class RerankModel:
         if not rankings:
             return []
         
-        # Extract raw scores
         raw_scores = [ranking["score"] for ranking in rankings]
         
-        # Min-Max normalization
         min_score = min(raw_scores)
         max_score = max(raw_scores)
         
-        # If all scores are the same, return max target value
         if max_score == min_score:
             return [
                 {
@@ -174,7 +169,6 @@ class RerankModel:
                 for r in rankings
             ]
         
-        # Normalize to target range
         target_min, target_max = target_range
         normalized_rankings = []
         

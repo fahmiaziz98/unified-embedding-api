@@ -250,7 +250,7 @@ async def create_query_embedding(
             processing_time = time.time() - start_time
 
             response = DenseEmbedResponse(
-                embeddings=embeddings[0],
+                embeddings=embeddings,
                 dimension=len(embeddings[0]),
                 model_id=request.model_id,
                 processing_time=processing_time,

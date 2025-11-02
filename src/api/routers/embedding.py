@@ -17,14 +17,13 @@ from src.models.schemas import (
     SparseEmbedding,
 )
 from src.core.manager import ModelManager
-from src.core.cache import EmbeddingCache
 from src.core.exceptions import (
     ModelNotFoundError,
     ModelNotLoadedError,
     EmbeddingGenerationError,
     ValidationError,
 )
-from src.api.dependencies import get_model_manager, get_cache_if_enabled
+from src.api.dependencies import get_model_manager
 from src.utils.validators import extract_embedding_kwargs, validate_texts
 from src.config.settings import get_settings
 
@@ -41,7 +40,6 @@ router = APIRouter(prefix="/embeddings", tags=["embeddings"])
 async def create_embeddings_document(
     request: EmbedRequest,
     manager: ModelManager = Depends(get_model_manager),
-    cache: EmbeddingCache = Depends(get_cache_if_enabled),
     settings=Depends(get_settings),
 ):
     """
@@ -53,7 +51,6 @@ async def create_embeddings_document(
     Args:
         request: BatchEmbedRequest with texts, model_id, and optional parameters
         manager: Model manager dependency
-        cache: Cache dependency (if enabled)
         settings: Application settings
 
     Returns:
@@ -73,19 +70,6 @@ async def create_embeddings_document(
         # Extract kwargs
         kwargs = extract_embedding_kwargs(request)
 
-        # Check cache first (batch requests typically not cached due to size)
-        # But we can cache if batch is small
-        if cache is not None and len(request.texts) <= 10:
-            cache_key = str(sorted(request.texts))  # Simple key for small batches
-            cached_result = cache.get(
-                texts=cache_key,
-                model_id=request.model_id,
-                prompt=request.prompt,
-                **kwargs,
-            )
-            if cached_result is not None:
-                logger.debug(f"Cache hit for batch (size={len(request.texts)})")
-                return cached_result
 
         # Get model
         model = manager.get_model(request.model_id)
@@ -133,17 +117,6 @@ async def create_embeddings_document(
                 processing_time=processing_time,
             )
 
-        # Cache small batches
-        if cache is not None and len(request.texts) <= 10:
-            cache_key = str(sorted(request.texts))
-            cache.set(
-                texts=cache_key,
-                model_id=request.model_id,
-                result=response,
-                prompt=request.prompt,
-                **kwargs,
-            )
-
         logger.info(
             f"Generated {len(request.texts)} embeddings "
             f"in {processing_time:.3f}s ({len(request.texts) / processing_time:.1f} texts/s)"
@@ -174,7 +147,6 @@ async def create_embeddings_document(
 async def create_query_embedding(
     request: EmbedRequest,
     manager: ModelManager = Depends(get_model_manager),
-    cache: EmbeddingCache = Depends(get_cache_if_enabled),
 ):
     """
     Generate a single/batch query embedding.
@@ -185,7 +157,6 @@ async def create_query_embedding(
     Args:
         request: EmbedRequest with text, model_id, and optional parameters
         manager: Model manager dependency
-        cache: Cache dependency (if enabled)
         settings: Application settings
 
     Returns:
@@ -200,20 +171,6 @@ async def create_query_embedding(
 
         # Extract kwargs
         kwargs = extract_embedding_kwargs(request)
-
-        # Check cache (with 'query' prefix in key)
-        cache_key_kwargs = {"endpoint": "query", **kwargs}
-
-        if cache is not None:
-            cached_result = cache.get(
-                texts=request.texts,
-                model_id=request.model_id,
-                prompt=request.prompt,
-                **cache_key_kwargs,
-            )
-            if cached_result is not None:
-                logger.debug(f"Cache hit for query model {request.model_id}")
-                return cached_result
 
         # Get model
         model = manager.get_model(request.model_id)
@@ -261,16 +218,6 @@ async def create_query_embedding(
                 processing_time=processing_time,
             )
 
-        # Cache small batches
-        if cache is not None and len(request.texts) <= 10:
-            cache_key = str(sorted(request.texts))
-            cache.set(
-                texts=cache_key,
-                model_id=request.model_id,
-                result=response,
-                prompt=request.prompt,
-                **kwargs,
-            )
 
         logger.info(
             f"Generated {len(request.texts)} embeddings "

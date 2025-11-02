@@ -36,12 +36,12 @@ class Settings(BaseSettings):
     PRELOAD_MODELS: bool = True  # Load all models at startup
 
     # Request Limits
-    MAX_TEXT_LENGTH: int = 8192  # Maximum characters per text
+    MAX_TEXT_LENGTH: int = 32000  # Maximum characters per text
     MAX_BATCH_SIZE: int = 100  # Maximum texts per batch request
     REQUEST_TIMEOUT: int = 30  # Request timeout in seconds
 
     # Cache Configuration
-    ENABLE_CACHE: bool = False  # Enable response caching (Phase 2)
+    ENABLE_CACHE: bool = True  # Enable response caching (Phase 2)
     CACHE_TTL: int = 3600  # Cache time-to-live in seconds
     CACHE_MAX_SIZE: int = 1000  # Maximum cache entries
 

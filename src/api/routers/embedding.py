@@ -229,42 +229,53 @@ async def create_query_embedding(
             )
             processing_time = time.time() - start_time
 
-            sparse_result = sparse_results[0]
-            sparse_embedding = SparseEmbedding(
-                text=request.texts[0],
-                indices=sparse_result["indices"],
-                values=sparse_result["values"],
-            )
+            # Convert to SparseEmbedding objects
+            sparse_embeddings = []
+            for idx, sparse_result in enumerate(sparse_results):
+                sparse_embeddings.append(
+                    SparseEmbedding(
+                        text=request.texts[idx],
+                        indices=sparse_result["indices"],
+                        values=sparse_result["values"],
+                    )
+                )
 
             response = SparseEmbedResponse(
-                sparse_embedding=sparse_embedding,
+                embeddings=sparse_embeddings,
+                count=len(sparse_embeddings),
                 model_id=request.model_id,
                 processing_time=processing_time,
             )
         else:
-            # Dense embedding
-            embeddings = model.embed_query(
+            # Dense batch embeddings
+            embeddings = model.embed_documents(
                 texts=request.texts, prompt=request.prompt, **kwargs
             )
             processing_time = time.time() - start_time
 
             response = DenseEmbedResponse(
                 embeddings=embeddings,
-                dimension=len(embeddings[0]),
+                dimension=len(embeddings[0]) if embeddings else 0,
+                count=len(embeddings),
                 model_id=request.model_id,
                 processing_time=processing_time,
-                count=len(embeddings),
             )
 
-        # Cache the result
-        if cache is not None:
+        # Cache small batches
+        if cache is not None and len(request.texts) <= 10:
+            cache_key = str(sorted(request.texts))
             cache.set(
-                texts=request.texts,
+                texts=cache_key,
                 model_id=request.model_id,
                 result=response,
                 prompt=request.prompt,
-                **cache_key_kwargs,
+                **kwargs,
             )
+
+        logger.info(
+            f"Generated {len(request.texts)} embeddings "
+            f"in {processing_time:.3f}s ({len(request.texts) / processing_time:.1f} texts/s)"
+        )
 
         return response
 

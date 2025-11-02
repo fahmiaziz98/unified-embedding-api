@@ -11,8 +11,7 @@ from loguru import logger
 
 from src.models.schemas import RootResponse, HealthStatus
 from src.core.manager import ModelManager
-from src.core.cache import EmbeddingCache
-from src.api.dependencies import get_model_manager, get_cache_if_enabled
+from src.api.dependencies import get_model_manager
 from src.config.settings import get_settings
 
 
@@ -91,7 +90,6 @@ async def health_check(manager: ModelManager = Depends(get_model_manager)):
 )
 async def system_info(
     manager: ModelManager = Depends(get_model_manager),
-    cache: EmbeddingCache = Depends(get_cache_if_enabled),
     settings=Depends(get_settings),
 ) -> Dict[str, Any]:
     """
@@ -100,7 +98,6 @@ async def system_info(
     Returns comprehensive information about:
     - API configuration
     - Model statistics
-    - Cache statistics (if enabled)
     - System settings
 
     Args:
@@ -132,79 +129,10 @@ async def system_info(
                 "max_batch_size": settings.MAX_BATCH_SIZE,
                 "request_timeout": settings.REQUEST_TIMEOUT,
             },
-            "cache": {"enabled": settings.ENABLE_CACHE},
         }
-
-        # Add cache stats if enabled
-        if cache is not None:
-            info["cache"]["stats"] = cache.stats
 
         return info
 
     except Exception as e:
         logger.exception("Failed to get system info")
         return {"error": "Failed to retrieve system information", "detail": str(e)}
-
-
-@router.get(
-    "/cache/stats",
-    summary="Cache statistics",
-    description="Get detailed cache statistics (if caching is enabled)",
-)
-async def cache_stats(
-    cache: EmbeddingCache = Depends(get_cache_if_enabled),
-) -> Dict[str, Any]:
-    """
-    Get cache statistics.
-
-    Returns detailed information about the embedding cache including:
-    - Current size
-    - Hit/miss counts
-    - Hit rate
-    - TTL configuration
-
-    Args:
-        cache: Cache dependency (if enabled)
-
-    Returns:
-        Dictionary with cache statistics or disabled message
-    """
-    if cache is None:
-        return {"enabled": False, "message": "Caching is disabled"}
-
-    try:
-        return {"enabled": True, **cache.stats}
-    except Exception as e:
-        logger.exception("Failed to get cache stats")
-        return {"enabled": True, "error": str(e)}
-
-
-@router.post(
-    "/cache/clear",
-    summary="Clear cache",
-    description="Clear all cached embeddings (if caching is enabled)",
-)
-async def clear_cache(
-    cache: EmbeddingCache = Depends(get_cache_if_enabled),
-) -> Dict[str, Any]:
-    """
-    Clear all cached embeddings.
-
-    This endpoint removes all entries from the cache, forcing
-    fresh computation for subsequent requests.
-
-    Args:
-        cache: Cache dependency (if enabled)
-
-    Returns:
-        Dictionary with operation status
-    """
-    if cache is None:
-        return {"success": False, "message": "Caching is disabled"}
-
-    try:
-        cache.clear()
-        return {"success": True, "message": "Cache cleared successfully"}
-    except Exception as e:
-        logger.exception("Failed to clear cache")
-        return {"success": False, "error": str(e)}

@@ -40,11 +40,6 @@ class Settings(BaseSettings):
     MAX_BATCH_SIZE: int = 100  # Maximum texts per batch request
     REQUEST_TIMEOUT: int = 30  # Request timeout in seconds
 
-    # Cache Configuration
-    ENABLE_CACHE: bool = True  # Enable response caching (Phase 2)
-    CACHE_TTL: int = 3600  # Cache time-to-live in seconds
-    CACHE_MAX_SIZE: int = 1000  # Maximum cache entries
-
     # Logging
     LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
     LOG_FILE: bool = False  # Write logs to file

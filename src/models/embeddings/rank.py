@@ -36,7 +36,7 @@ class RerankModel:
         """
         self.config = config
         self._loaded = False
-        self.model = Optional[CrossEncoder] = None
+        self.model: Optional[CrossEncoder] = None
         self.settings = get_settings()
 
     def load(self) -> None:

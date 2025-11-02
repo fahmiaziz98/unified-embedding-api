@@ -54,9 +54,9 @@ class DenseEmbeddingModel(BaseEmbeddingModel):
 
         try:
             self.model = SentenceTransformer(
-                self.config.name, 
-                device=self.settings.DEVICE, 
-                trust_remote_code=self.settings.TRUST_REMOTE_CODE
+                self.config.name,
+                device=self.settings.DEVICE,
+                trust_remote_code=self.settings.TRUST_REMOTE_CODE,
             )
             self._loaded = True
             logger.success(f"✓ Loaded dense model: {self.model_id}")

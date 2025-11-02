@@ -18,6 +18,6 @@ models:
     name: "prithivida/Splade_PP_en_v2"
     type: "sparse-embeddings"
     
-#  naver-splade-v3:
-#    name: "naver/splade-v3"
-#    type: "sparse-embeddings"
+  bge-v2-m3:
+    name: "BAAI/bge-reranker-v2-m3"
+    type: "rerank"

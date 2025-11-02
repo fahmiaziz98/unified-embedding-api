@@ -8,14 +8,14 @@ accessing different embedding models.
 
 import yaml
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Union
 from threading import Lock
 from loguru import logger
 
 from .base import BaseEmbeddingModel
 from .config import ModelConfig
 from .exceptions import ModelNotFoundError, ConfigurationError, ModelLoadError
-from src.models.embeddings import DenseEmbeddingModel, SparseEmbeddingModel
+from src.models.embeddings import DenseEmbeddingModel, SparseEmbeddingModel, RerankModel
 
 
 class ModelManager:
@@ -45,7 +45,7 @@ class ModelManager:
         Raises:
             ConfigurationError: If configuration is invalid
         """
-        self.models: Dict[str, BaseEmbeddingModel] = {}
+        self.models: Dict[str, Union[BaseEmbeddingModel, RerankModel]] = {}
         self.model_configs: Dict[str, ModelConfig] = {}
         self._lock = Lock()
         self._preload_complete = False
@@ -94,7 +94,9 @@ class ModelManager:
         except Exception as e:
             raise ConfigurationError(f"Failed to load configuration: {e}")
 
-    def _create_model(self, config: ModelConfig) -> BaseEmbeddingModel:
+    def _create_model(
+        self, config: ModelConfig
+    ) -> Union[BaseEmbeddingModel, RerankModel]:
         """
         Factory method to create model instances based on type.
 
@@ -106,6 +108,8 @@ class ModelManager:
         """
         if config.type == "sparse-embeddings":
             return SparseEmbeddingModel(config)
+        elif config.type == "rerank":
+            return RerankModel(config)
         else:
             return DenseEmbeddingModel(config)
 
@@ -280,10 +284,13 @@ class ModelManager:
         """
         dense_models = []
         sparse_models = []
+        rerank_models = []
 
         for model_id, config in self.model_configs.items():
             if config.type == "sparse-embeddings":
                 sparse_models.append(f"**{config.name}**")
+            elif config.type == "rerank":
+                rerank_models.append(f"**{config.name}**")
             else:
                 dense_models.append(f"**{config.name}**")
 
@@ -303,6 +310,12 @@ High-performance API for generating text embeddings using multiple model archite
                 description += f"- {model}\n"
             description += "\n"
 
+        if rerank_models:
+            description += "🔍 **Rerank Models:**\n"
+            for model in rerank_models:
+                description += f"- {model}\n"
+            description += "\n"
+
         description += """
 🚀 **Features:**
 - Single text embedding generation
@@ -318,6 +331,7 @@ High-performance API for generating text embeddings using multiple model archite
         description += f"- Total configured models: **{len(self.model_configs)}**\n"
         description += f"- Dense embedding models: **{len(dense_models)}**\n"
         description += f"- Sparse embedding models: **{len(sparse_models)}**\n"
+        description += f"- Rerank models: **{len(rerank_models)}**\n"
         description += """
 
 ⚠️ Note: This is a development API. For production use, deploy on cloud platforms like Hugging Face TEI, AWS, or GCP.

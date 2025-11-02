@@ -101,3 +101,38 @@ class EmbedRequest(BaseEmbedRequest):
                 },
             }
         }
+
+
+class RerankRequest(BaseEmbedRequest):
+    """
+    Request model for document reranking.
+
+    Attributes:
+        query: The search query
+        documents: List of documents to rerank
+        top_k: Maximum number of documents to return
+
+    """
+
+    query: str = Field(..., description="Search query text")
+    documents: List[str] = Field(
+        ..., min_items=1, description="List of documents to rerank"
+    )
+    top_k: int = Field(..., description="Maximum number of results to return")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "model_id": "jina-reranker-v3",
+                "query": "Python best programming languages for data science",
+                "top_k": 4,
+                "prompt": "Rerank document based user query",
+                "documents": [
+                    "Python is a popular language for data science due to its extensive libraries.",
+                    "R is widely used in statistical computing and data analysis.",
+                    "Java is a versatile language used in various applications, including data science.",
+                    "SQL is essential for managing and querying relational databases.",
+                    "Julia is a high-performance language gaining popularity for numerical computing and data science.",
+                ],
+            }
+        }

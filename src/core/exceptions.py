@@ -92,6 +92,16 @@ class EmbeddingGenerationError(EmbeddingAPIException):
         self.reason = reason
 
 
+class RerankingDocumentError(EmbeddingAPIException):
+    """Raised when reranking document fails."""
+
+    def __init__(self, model_id: str, reason: str):
+        message = f"Failed to reranking document with model '{model_id}': {reason}"
+        super().__init__(message, status_code=500)
+        self.model_id = model_id
+        self.reason = reason
+
+
 class ServerNotReadyError(EmbeddingAPIException):
     """Raised when server is not fully initialized."""
 

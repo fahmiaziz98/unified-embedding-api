@@ -13,12 +13,14 @@ from .common import (
     EmbeddingOptions,
 )
 
-from .requests import BaseEmbedRequest, EmbedRequest
+from .requests import BaseEmbedRequest, EmbedRequest, RerankRequest
 
 from .responses import (
     BaseEmbedResponse,
     DenseEmbedResponse,
     SparseEmbedResponse,
+    RerankResponse,
+    RerankResult,
     ModelsListResponse,
     RootResponse,
 )
@@ -33,10 +35,13 @@ __all__ = [
     # Requests
     "BaseEmbedRequest",
     "EmbedRequest",
+    "RerankRequest",
     # Responses
     "BaseEmbedResponse",
     "DenseEmbedResponse",
     "SparseEmbedResponse",
+    "RerankResponse",
+    "RerankResult",
     "ModelsListResponse",
     "RootResponse",
 ]

@@ -28,17 +28,17 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 7860
     WORKERS: int = 1
-    RELOAD: bool = False  
+    RELOAD: bool = False
 
     # Model Configuration
     MODEL_CONFIG_PATH: str = "src/config/models.yaml"
     MODEL_CACHE_DIR: str = "./model_cache"
-    PRELOAD_MODELS: bool = True  
+    PRELOAD_MODELS: bool = True
 
     # Request Limits
-    MAX_TEXT_LENGTH: int = 32000  
-    MAX_BATCH_SIZE: int = 100  
-    REQUEST_TIMEOUT: int = 30  
+    MAX_TEXT_LENGTH: int = 32000
+    MAX_BATCH_SIZE: int = 100
+    REQUEST_TIMEOUT: int = 30
 
     # Logging
     LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -56,7 +56,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
-        extra="ignore", 
+        extra="ignore",
     )
 
     @property

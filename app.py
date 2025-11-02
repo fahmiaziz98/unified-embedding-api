@@ -13,7 +13,7 @@ from loguru import logger
 from src.config.settings import get_settings
 from src.core.manager import ModelManager
 from src.api import dependencies
-from src.api.routers import embedding, model_list, health
+from src.api.routers import embedding, model_list, health, rerank
 from src.utils.logger import setup_logger
 
 
@@ -110,6 +110,7 @@ def create_app() -> FastAPI:
     # Include routers
     app.include_router(health.router)  # Root and health (no prefix)
     app.include_router(embedding.router, prefix="/api/v1")
+    app.include_router(rerank.router, prefix="/api/v1")
     app.include_router(model_list.router, prefix="/api/v1")
 
     return app

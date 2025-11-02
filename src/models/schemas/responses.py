@@ -99,6 +99,47 @@ class SparseEmbedResponse(BaseEmbedResponse):
         }
 
 
+class RerankResult(BaseModel):
+    """
+    Single reranking result.
+
+    Attributes:
+        text: The document text
+        score: Relevance score from the reranking model
+        index: Original index of the document in input list
+    """
+
+    text: str = Field(..., description="Document text")
+    score: float = Field(..., description="Relevance score")
+    index: int = Field(..., description="Original index of the document")
+
+
+class RerankResponse(BaseEmbedResponse):
+    """
+    Response model for document reranking.
+
+    Attributes:
+        results: List of reranked documents with scores
+        query: The original search query
+    """
+
+    query: str = Field(..., description="Original search query")
+    results: List[RerankResult] = Field(..., description="List of reranked documents")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "model_id": "jina-reranker-v3",
+                "query": "Rerank document",
+                "processing_time": 0.56,
+                "results": [
+                    {"text": "document 1", "score": 0.6, "index": 0},
+                    {"text": "document 2", "score": 0.5, "index": 1},
+                ],
+            }
+        }
+
+
 class ModelsListResponse(BaseModel):
     """
     Response model for listing available models.

@@ -28,35 +28,35 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 7860
     WORKERS: int = 1
-    RELOAD: bool = False  # Auto-reload on code changes (dev only)
+    RELOAD: bool = False  
 
     # Model Configuration
     MODEL_CONFIG_PATH: str = "src/config/models.yaml"
     MODEL_CACHE_DIR: str = "./model_cache"
-    PRELOAD_MODELS: bool = True  # Load all models at startup
+    PRELOAD_MODELS: bool = True  
 
     # Request Limits
-    MAX_TEXT_LENGTH: int = 32000  # Maximum characters per text
-    MAX_BATCH_SIZE: int = 100  # Maximum texts per batch request
-    REQUEST_TIMEOUT: int = 30  # Request timeout in seconds
+    MAX_TEXT_LENGTH: int = 32000  
+    MAX_BATCH_SIZE: int = 100  
+    REQUEST_TIMEOUT: int = 30  
 
     # Logging
     LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-    LOG_FILE: bool = False  # Write logs to file
+    LOG_FILE: bool = True  # Write logs to file
     LOG_DIR: str = "logs"
 
-    # CORS (if needed for web frontends)
     CORS_ENABLED: bool = False
     CORS_ORIGINS: list[str] = ["*"]
 
     # Model Settings
+    DEVICE: str = "cpu"  # "cpu" or "cuda
     TRUST_REMOTE_CODE: bool = True  # For models requiring remote code
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
-        extra="ignore",  # Ignore extra fields in .env
+        extra="ignore", 
     )
 
     @property
@@ -86,10 +86,8 @@ class Settings(BaseSettings):
                 f"Model configuration file not found: {self.MODEL_CONFIG_PATH}"
             )
 
-        # Create cache directory if it doesn't exist
         Path(self.MODEL_CACHE_DIR).mkdir(parents=True, exist_ok=True)
 
-        # Create log directory if logging to file
         if self.LOG_FILE:
             Path(self.LOG_DIR).mkdir(parents=True, exist_ok=True)
 

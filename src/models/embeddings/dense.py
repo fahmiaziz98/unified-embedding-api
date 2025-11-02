@@ -9,6 +9,7 @@ from typing import List, Optional
 from sentence_transformers import SentenceTransformer
 from loguru import logger
 
+from src.config.settings import get_settings
 from src.core.base import BaseEmbeddingModel
 from src.core.config import ModelConfig
 from src.core.exceptions import ModelLoadError, EmbeddingGenerationError
@@ -36,6 +37,7 @@ class DenseEmbeddingModel(BaseEmbeddingModel):
         """
         super().__init__(config)
         self.model: Optional[SentenceTransformer] = None
+        self.settings = get_settings()
 
     def load(self) -> None:
         """
@@ -52,7 +54,9 @@ class DenseEmbeddingModel(BaseEmbeddingModel):
 
         try:
             self.model = SentenceTransformer(
-                self.config.name, device="cpu", trust_remote_code=True
+                self.config.name, 
+                device=self.settings.DEVICE, 
+                trust_remote_code=self.settings.TRUST_REMOTE_CODE
             )
             self._loaded = True
             logger.success(f"✓ Loaded dense model: {self.model_id}")

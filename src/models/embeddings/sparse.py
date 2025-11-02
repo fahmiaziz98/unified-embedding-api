@@ -9,6 +9,7 @@ from typing import List, Optional, Dict, Any
 from sentence_transformers import SparseEncoder
 from loguru import logger
 
+from src.config.settings import get_settings
 from src.core.base import BaseEmbeddingModel
 from src.core.config import ModelConfig
 from src.core.exceptions import ModelLoadError, EmbeddingGenerationError
@@ -36,6 +37,7 @@ class SparseEmbeddingModel(BaseEmbeddingModel):
         """
         super().__init__(config)
         self.model: Optional[SparseEncoder] = None
+        self.settings = get_settings()
 
     def load(self) -> None:
         """
@@ -51,7 +53,11 @@ class SparseEmbeddingModel(BaseEmbeddingModel):
         logger.info(f"Loading sparse embedding model: {self.config.name}")
 
         try:
-            self.model = SparseEncoder(self.config.name)
+            self.model = SparseEncoder(
+                self.config.name,
+                device=self.settings.DEVICE,
+                trust_remote_code=self.settings.TRUST_REMOTE_CODE,
+            )
             self._loaded = True
             logger.success(f"✓ Loaded sparse model: {self.model_id}")
 

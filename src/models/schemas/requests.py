@@ -49,7 +49,7 @@ class EmbedRequest(BaseEmbedRequest):
     """
     Request model for single/batch text and sparse embedding.
 
-    Used for /embed endpoint to process multiple texts at once.
+    Used for /embed and /query endpoint to process multiple texts at once.
 
     Attributes:
         texts: List of input texts to embed
@@ -61,7 +61,6 @@ class EmbedRequest(BaseEmbedRequest):
         ...,
         description="List of input texts to generate embeddings for",
         min_length=1,
-        max_length=100,
     )
 
     @field_validator("texts")

@@ -27,7 +27,7 @@ class DenseEmbedResponse(BaseEmbedResponse):
     """
     Response model for single/batch dense embeddings.
 
-    Used for /embed endpoint with dense models.
+    Used for /embed & /query endpoint with dense models.
 
     Attributes:
         embeddings: List of generated dense embedding vectors
@@ -63,7 +63,7 @@ class SparseEmbedResponse(BaseEmbedResponse):
     """
     Response model for single/batch sparse embeddings.
 
-    Used for /embed_sparse endpoint with sparse models.
+    Used for /embed and /query endpoint with sparse models.
 
     Attributes:
         embeddings: List of generated sparse embeddings

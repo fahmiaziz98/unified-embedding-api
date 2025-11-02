@@ -13,14 +13,12 @@ from .common import (
     EmbeddingOptions,
 )
 
-from .requests import BaseEmbedRequest, EmbedRequest, BatchEmbedRequest
+from .requests import BaseEmbedRequest, EmbedRequest
 
 from .responses import (
     BaseEmbedResponse,
     DenseEmbedResponse,
     SparseEmbedResponse,
-    BatchDenseEmbedResponse,
-    BatchSparseEmbedResponse,
     ModelsListResponse,
     RootResponse,
 )

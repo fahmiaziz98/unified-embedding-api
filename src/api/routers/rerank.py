@@ -80,37 +80,52 @@ async def rerank_documents(
                 detail=f"Model '{request.model_id}' is not a rerank model. Type: {config.type}",
             )
 
+        # Debug logs BEFORE calling rank_document
+        logger.debug(f"Rerank request - Query: '{request.query}'")
+        logger.debug(f"Documents to rank: {len(valid_docs)}")
+        if valid_docs:
+            logger.debug(f"First document: {valid_docs[0][1][:100]}...")
+        logger.debug(f"Top K: {request.top_k}")
+
         start = time.time()
 
-        # Call rank_document with clean kwargs
-        scores = model.rank_document(
+        # Extract documents for ranking
+        documents_list = [doc for _, doc in valid_docs]
+        
+        # Call rank_document - returns only top_k results
+        ranking_results = model.rank_document(
             query=request.query,
-            documents=[doc for _, doc in valid_docs],  # Use filtered documents
+            documents=documents_list,
             top_k=request.top_k,
             **kwargs,
         )
 
         processing_time = time.time() - start
 
-        # Sebelum memanggil rank_document, tambahkan:
-        logger.debug(f"Rerank request - Query: '{request.query}'")
-        logger.debug(f"Documents to rank: {len(request.documents)}")
-        logger.debug(f"First document: {request.documents[-1][:100]}...")
-        logger.debug(f"Top K: {request.top_k}")
+        # Debug logs AFTER rank_document
+        logger.debug(f"Ranking returned {len(ranking_results)} results")
+        if ranking_results:
+            logger.debug(f"Top result score: {ranking_results[0]}")
 
-        # Setelah rank_document, tambahkan:
-        logger.debug(f"Ranking returned {len(scores)} scores")
-        logger.debug(f"Sample scores: {scores[:5] if scores else 'None'}")
-
-        # Build results with original indices
-        original_indices, documents_list = zip(*valid_docs)
+        # Build results from ranking_results
+        # ranking_results already contains top_k items with scores
         results = []
-
-        for i, (orig_idx, doc) in enumerate(zip(original_indices, documents_list)):
-            results.append(RerankResult(text=doc, score=scores[i], index=orig_idx))
-
-        # Sort results by score in descending order
-        results.sort(key=lambda x: x.score, reverse=True)
+        
+        for rank_result in ranking_results:
+            # Get original index from valid_docs
+            doc_idx = rank_result.get('corpus_id', 0)  # Index in filtered list
+            if doc_idx < len(valid_docs):
+                original_idx = valid_docs[doc_idx][0]  # Original index
+                doc_text = documents_list[doc_idx]
+                score = rank_result['score']
+                
+                results.append(
+                    RerankResult(
+                        text=doc_text,
+                        score=score,
+                        index=original_idx
+                    )
+                )
 
         logger.info(
             f"Reranked {len(results)} documents in {processing_time:.3f}s "

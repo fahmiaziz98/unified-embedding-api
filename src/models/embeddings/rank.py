@@ -5,7 +5,7 @@ This module provides the RerankModel class for reranking
 documents using sentence-transformers.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Dict
 from sentence_transformers import CrossEncoder
 from loguru import logger
 
@@ -18,18 +18,18 @@ class RerankModel:
     """
     Cross-encoder model wrapper using sentence-transformers.
 
-    This class wraps sentence-transformers SentenceTransformer models
-    to ranking documents
+    This class wraps sentence-transformers CrossEncoder models
+    for ranking documents
 
     Attributes:
         config: ModelConfig instance
-        model: SentenceTransformer instance
+        model: CrossEncoder instance
         _loaded: Flag indicating if the model is loaded
     """
 
     def __init__(self, config: ModelConfig):
         """
-        Initialize the dense embedding model.
+        Initialize the rerank model.
 
         Args:
             config: ModelConfig instance with model configuration
@@ -48,6 +48,7 @@ class RerankModel:
         """
         if self._loaded:
             logger.debug(f"Model {self.model_id} already loaded")
+            return
 
         logger.info(f"Loading rerank model: {self.config.name}")
 
@@ -58,7 +59,7 @@ class RerankModel:
                 trust_remote_code=self.settings.TRUST_REMOTE_CODE,
             )
             self._loaded = True
-            logger.success(f"✓ Loaded dense model: {self.model_id}")
+            logger.success(f"✓ Loaded rerank model: {self.model_id}")
 
         except Exception as e:
             error_msg = f"Failed to load model: {str(e)}"
@@ -93,28 +94,44 @@ class RerankModel:
         documents: List[str],
         top_k: int,
         **kwargs,
-    ) -> List[float]:
+    ) -> List[Dict]:
         """
         Rerank documents using the CrossEncoder model.
 
         Args:
             query (str): The search query string.
             documents (List[str]): List of documents to be reranked.
-            top_k (int): top n documents
-            **kwargs
+            top_k (int): Number of top documents to return
+            **kwargs: Additional arguments passed to model.rank()
 
         Returns:
-            List[float]: List of relevance scores for each document.
+            List[Dict]: List of ranking results with 'corpus_id' and 'score'.
+                       Returns top_k results sorted by score (highest first).
 
-        Raises:.
-            Exception: If reranking fails.
+        Raises:
+            RerankingDocumentError: If reranking fails.
         """
         if not self._loaded or self.model is None:
             self.load()
+        
         try:
-            scores = self.model.rank(query, documents, top_k=top_k, **kwargs)
-            normalized_score = self._normalize_rerank_scores(scores)
-            return normalized_score
+            # model.rank returns List[Dict] with 'corpus_id' and 'score'
+            # Already sorted by score (highest first) and limited to top_k
+            ranking_results = self.model.rank(
+                query, 
+                documents, 
+                top_k=top_k, 
+                **kwargs
+            )
+            
+            # Normalize scores to 0-1 range for consistency
+            normalized_results = self._normalize_rerank_scores(ranking_results)
+            
+            logger.debug(
+                f"Reranked {len(documents)} docs, returned top {len(normalized_results)}"
+            )
+            
+            return normalized_results
 
         except Exception as e:
             error_msg = f"Reranking documents failed: {str(e)}"
@@ -122,34 +139,57 @@ class RerankModel:
             raise RerankingDocumentError(self.model_id, error_msg)
 
     def _normalize_rerank_scores(
-        self, rankings: List[dict], target_range: tuple = (0, 1)
-    ) -> List[float]:
+        self, 
+        rankings: List[Dict], 
+        target_range: tuple = (0, 1)
+    ) -> List[Dict]:
         """
-        Normalize reranking scores menggunakan berbagai metode.
+        Normalize reranking scores using min-max normalization.
 
         Args:
-            rankings: List of ranking dictionaries dari cross-encoder
-            target_range: Target range untuk minmax normalization (min, max)
+            rankings: List of ranking dictionaries from cross-encoder
+                     Format: [{'corpus_id': int, 'score': float}, ...]
+            target_range: Target range for normalization (min, max)
 
         Returns:
-            List of normalized scores
+            List[Dict]: Rankings with normalized scores
         """
+        if not rankings:
+            return []
+        
+        # Extract raw scores
         raw_scores = [ranking["score"] for ranking in rankings]
-
-        # Min-Max normalization ke target range
+        
+        # Min-Max normalization
         min_score = min(raw_scores)
         max_score = max(raw_scores)
-
+        
+        # If all scores are the same, return max target value
         if max_score == min_score:
-            return [target_range[1]] * len(raw_scores)  # All same score
-
+            return [
+                {
+                    "corpus_id": r["corpus_id"],
+                    "score": target_range[1]
+                }
+                for r in rankings
+            ]
+        
+        # Normalize to target range
         target_min, target_max = target_range
-        normalized = [
-            target_min
-            + (score - min_score) * (target_max - target_min) / (max_score - min_score)
-            for score in raw_scores
-        ]
-        return normalized
+        normalized_rankings = []
+        
+        for ranking in rankings:
+            score = ranking["score"]
+            normalized_score = (
+                target_min + 
+                (score - min_score) * (target_max - target_min) / (max_score - min_score)
+            )
+            normalized_rankings.append({
+                "corpus_id": ranking["corpus_id"],
+                "score": float(normalized_score)
+            })
+        
+        return normalized_rankings
 
     @property
     def is_loaded(self) -> bool:
@@ -177,7 +217,7 @@ class RerankModel:
         Get the model type.
 
         Returns:
-            Model type ('embeddings' or 'sparse-embeddings')
+            Model type ('rerank')
         """
         return self.config.type
 

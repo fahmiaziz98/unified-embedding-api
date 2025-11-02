@@ -70,7 +70,6 @@ async def create_embeddings_document(
         # Extract kwargs
         kwargs = extract_embedding_kwargs(request)
 
-
         # Get model
         model = manager.get_model(request.model_id)
         config = manager.model_configs[request.model_id]
@@ -217,7 +216,6 @@ async def create_query_embedding(
                 model_id=request.model_id,
                 processing_time=processing_time,
             )
-
 
         logger.info(
             f"Generated {len(request.texts)} embeddings "

@@ -33,13 +33,10 @@ __all__ = [
     # Requests
     "BaseEmbedRequest",
     "EmbedRequest",
-    "BatchEmbedRequest",
     # Responses
     "BaseEmbedResponse",
     "DenseEmbedResponse",
     "SparseEmbedResponse",
-    "BatchDenseEmbedResponse",
-    "BatchSparseEmbedResponse",
     "ModelsListResponse",
     "RootResponse",
 ]

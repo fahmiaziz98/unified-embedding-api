@@ -55,4 +55,3 @@ def get_model_manager() -> ModelManager:
             detail="Server is not ready. Model manager not initialized.",
         )
     return _model_manager
-

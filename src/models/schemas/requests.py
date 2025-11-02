@@ -126,7 +126,6 @@ class RerankRequest(BaseEmbedRequest):
                 "model_id": "jina-reranker-v3",
                 "query": "Python best programming languages for data science",
                 "top_k": 4,
-                "prompt": "Rerank document based user query",
                 "documents": [
                     "Python is a popular language for data science due to its extensive libraries.",
                     "R is widely used in statistical computing and data analysis.",

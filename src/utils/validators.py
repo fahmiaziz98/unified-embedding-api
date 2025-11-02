@@ -10,6 +10,26 @@ from pydantic import BaseModel
 from src.core.exceptions import TextTooLongError, BatchTooLargeError, ValidationError
 
 
+def validate_text(text: str, max_length: int = 8192, allow_empty: bool = False) -> None:
+    """
+    Validate a single text input.
+
+    Args:
+        text: Input text to validate
+        max_length: Maximum allowed text length
+        allow_empty: Whether to allow empty strings
+
+    Raises:
+        ValidationError: If text is empty and not allowed
+        TextTooLongError: If text exceeds max_length
+    """
+    if not allow_empty and not text.strip():
+        raise ValidationError("text", "Text cannot be empty")
+
+    if len(text) > max_length:
+        raise TextTooLongError(len(text), max_length)
+
+
 def validate_texts(
     texts: List[str],
     max_length: int = 8192,
@@ -71,30 +91,6 @@ def validate_model_id(model_id: str, available_models: List[str]) -> None:
         )
 
 
-def sanitize_text(text: str, max_length: int = 8192) -> str:
-    """
-    Sanitize text input by removing excessive whitespace and truncating.
-
-    Args:
-        text: Input text to sanitize
-        max_length: Maximum length to truncate to
-
-    Returns:
-        Sanitized text
-    """
-    # Remove leading/trailing whitespace
-    text = text.strip()
-
-    # Replace multiple whitespaces with single space
-    text = " ".join(text.split())
-
-    # Truncate if too long
-    if len(text) > max_length:
-        text = text[:max_length]
-
-    return text
-
-
 def extract_embedding_kwargs(request: BaseModel) -> Dict[str, Any]:
     """
     Extract embedding kwargs from a request object.
@@ -110,7 +106,7 @@ def extract_embedding_kwargs(request: BaseModel) -> Dict[str, Any]:
 
     Example:
         >>> request = EmbedRequest(
-        ...     text="hello",
+        ...     texts=["hello"],
         ...     model_id="qwen3-0.6b",
         ...     options=EmbeddingOptions(normalize_embeddings=True),
         ...     batch_size=32  # Extra field
@@ -125,7 +121,16 @@ def extract_embedding_kwargs(request: BaseModel) -> Dict[str, Any]:
         kwargs.update(request.options.to_kwargs())
 
     # Extract extra fields (excluding standard fields)
-    standard_fields = {"text", "texts", "model_id", "prompt", "options"}
+    standard_fields = {
+        "text",
+        "texts",
+        "model_id",
+        "prompt",
+        "options",
+        "query",
+        "documents",
+        "top_k",
+    }
     request_dict = request.model_dump()
 
     for key, value in request_dict.items():

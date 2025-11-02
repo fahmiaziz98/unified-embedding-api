@@ -175,7 +175,6 @@ async def create_query_embedding(
     request: EmbedRequest,
     manager: ModelManager = Depends(get_model_manager),
     cache: EmbeddingCache = Depends(get_cache_if_enabled),
-    settings=Depends(get_settings),
 ):
     """
     Generate a single/batch query embedding.
@@ -232,7 +231,7 @@ async def create_query_embedding(
 
             sparse_result = sparse_results[0]
             sparse_embedding = SparseEmbedding(
-                text=request.texts,
+                text=request.texts[0],
                 indices=sparse_result["indices"],
                 values=sparse_result["values"],
             )

@@ -63,7 +63,7 @@ async def rerank_documents(
         start = time.time()
         if config.type == "rerank":
             scores = model.rank_document(
-                request.query, [doc for _, doc in valid_docs], request.top_k, **kwargs
+                request.query, request.documents, request.top_k, **kwargs
             )
             processing_time = time.time() - start
 

@@ -206,7 +206,7 @@ async def create_query_embedding(
 
         if cache is not None:
             cached_result = cache.get(
-                texts=request.text,
+                texts=request.texts,
                 model_id=request.model_id,
                 prompt=request.prompt,
                 **cache_key_kwargs,

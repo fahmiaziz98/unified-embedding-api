@@ -5,7 +5,8 @@ from typing import Dict, List, Any, Union
 from threading import Lock
 from .embedding import EmbeddingModel
 from .sparse import SparseEmbeddingModel
-from .config import ModelConfig
+from ..src.core.config import ModelConfig
+
 
 class ModelManager:
     """
@@ -18,49 +19,51 @@ class ModelManager:
         _lock: A threading lock for thread-safe operations.
         _preload_complete: Flag indicating if all models have been preloaded.
     """
-    
+
     def __init__(self, config_path: str = "config.yaml"):
         self.models: Dict[str, Union[EmbeddingModel, SparseEmbeddingModel]] = {}
         self.model_configs: Dict[str, ModelConfig] = {}
         self._lock = Lock()  # For thread safety
         self._preload_complete = False
-        
+
         self._load_config(config_path)
-        
+
     def _load_config(self, config_path: str) -> None:
         """Load model configurations from a YAML file."""
 
         config_file = Path(config_path)
         if not config_file.exists():
             raise FileNotFoundError(f"Configuration file not found: {config_path}")
-            
+
         try:
             with open(config_file, "r", encoding="utf-8") as f:
                 config = yaml.safe_load(f)
-                
+
             for model_id, model_cfg in config["models"].items():
                 self.model_configs[model_id] = ModelConfig(model_id, model_cfg)
-                
+
             logger.info(f"Loaded {len(self.model_configs)} model configurations")
-            
+
         except Exception as e:
             raise ValueError(f"Failed to load configuration: {e}")
-    
-    def _create_model(self, config: ModelConfig) -> Union[EmbeddingModel, SparseEmbeddingModel]:
+
+    def _create_model(
+        self, config: ModelConfig
+    ) -> Union[EmbeddingModel, SparseEmbeddingModel]:
         """
         Factory method to create model instances based on type.
-        
+
         Args:
             config: The ModelConfig instance.
-            
+
         Returns:
             The created model instance.
         """
         if config.type == "sparse-embeddings":
             return SparseEmbeddingModel(config)
-        else:  
+        else:
             return EmbeddingModel(config)
-    
+
     def preload_all_models(self) -> None:
         """
         Preload all models defined in the configuration.
@@ -70,9 +73,9 @@ class ModelManager:
         if self._preload_complete:
             logger.info("Models already preloaded")
             return
-            
+
         logger.info(f"Preloading {len(self.model_configs)} models...")
-        
+
         successful_loads = 0
         for model_id, config in self.model_configs.items():
             try:
@@ -83,30 +86,30 @@ class ModelManager:
                         self.models[model_id] = model
                         successful_loads += 1
                         logger.debug(f"Preloaded: {model_id}")
-                        
+
             except Exception as e:
                 logger.error(f"Failed to preload {model_id}: {e}")
-        
+
         self._preload_complete = True
         logger.success(f"Preloaded {successful_loads}/{len(self.model_configs)} models")
-    
+
     def get_model(self, model_id: str) -> Union[EmbeddingModel, SparseEmbeddingModel]:
         """
         Retrieve a model instance by its ID, loading it on-demand if necessary.
-        
+
         Args:
             model_id: The ID of the model to retrieve.
-            
+
         Returns:
             The model instance.
         """
         if model_id not in self.model_configs:
             raise ValueError(f"Model '{model_id}' not found in configuration")
-            
+
         with self._lock:
             if model_id in self.models:
                 return self.models[model_id]
-            
+
             logger.info(f"🔄 Loading model on-demand: {model_id}")
             try:
                 config = self.model_configs[model_id]
@@ -117,23 +120,23 @@ class ModelManager:
                 return model
             except Exception as e:
                 raise RuntimeError(f"Failed to load model {model_id}: {e}")
-            
+
     def get_model_info(self, model_id: str) -> Dict[str, Any]:
         """
         Get detailed information about a specific model.
-        
+
         Args:
             model_id: The ID of the model.
-        
+
         Returns:
             A dictionary with model details and load status.
         """
         if model_id not in self.model_configs:
             return {}
-            
+
         config = self.model_configs[model_id]
         is_loaded = model_id in self.models and self.models[model_id]._loaded
-        
+
         return {
             "id": config.id,
             "name": config.name,
@@ -141,7 +144,7 @@ class ModelManager:
             "loaded": is_loaded,
             "repository": config.repository,
         }
-    
+
     def generate_api_description(self) -> str:
         """Generate a dynamic API description based on available models."""
 
@@ -153,7 +156,7 @@ class ModelManager:
                 sparse_models.append(f"**{config.name}**")
             else:
                 dense_models.append(f"**{config.name}**")
-        
+
         description = """
 High-performance API for generating text embeddings using multiple model architectures.
 
@@ -163,13 +166,13 @@ High-performance API for generating text embeddings using multiple model archite
             for model in dense_models:
                 description += f"- {model}\n"
             description += "\n"
-        
+
         if sparse_models:
             description += "🔤 **Sparse Embedding Models:**\n"
             for model in sparse_models:
                 description += f"- {model}\n"
             description += "\n"
-        
+
         # Add features section
         description += """
 🚀 **Features:**
@@ -190,29 +193,31 @@ High-performance API for generating text embeddings using multiple model archite
 ⚠️ Note: This is a development API. For production use, must deploy on cloud like TGI Huggingface, AWS, GCP etc
         """
         return description.strip()
-    
+
     def list_models(self) -> List[Dict[str, Any]]:
         """List all available models with their configurations and load status."""
         return [self.get_model_info(model_id) for model_id in self.model_configs.keys()]
-    
+
     def get_memory_usage(self) -> Dict[str, Any]:
         """Get memory usage statistics for loaded models."""
         loaded_models = []
         for model_id, model in self.models.items():
             if model._loaded:
-                loaded_models.append({
-                    "id": model_id,
-                    "type": self.model_configs[model_id].type,
-                    "name": model.config.name
-                })
-        
+                loaded_models.append(
+                    {
+                        "id": model_id,
+                        "type": self.model_configs[model_id].type,
+                        "name": model.config.name,
+                    }
+                )
+
         return {
             "total_available": len(self.model_configs),
             "loaded_count": len(loaded_models),
             "loaded_models": loaded_models,
-            "preload_complete": self._preload_complete
+            "preload_complete": self._preload_complete,
         }
-    
+
     def unload_all_models(self) -> None:
         """Unload all models and clear the model cache."""
         with self._lock:

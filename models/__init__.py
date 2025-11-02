@@ -1,12 +1,12 @@
 # app/models/__init__.py
 from .model import (
-    BatchEmbedRequest, 
-    BatchEmbedResponse, 
-    EmbedRequest, 
+    BatchEmbedRequest,
+    BatchEmbedResponse,
+    EmbedRequest,
     EmbedResponse,
     SparseEmbedResponse,
     SparseEmbedding,
-    BatchSparseEmbedResponse
+    BatchSparseEmbedResponse,
 )
 
 __all__ = [
@@ -16,5 +16,5 @@ __all__ = [
     "BatchEmbedResponse",
     "SparseEmbedding",
     "SparseEmbedResponse",
-    "BatchSparseEmbedResponse"
+    "BatchSparseEmbedResponse",
 ]

@@ -2,29 +2,22 @@ models:
   qwen3-0.6b:
     name: "Qwen/Qwen3-Embedding-0.6B"
     type: "embeddings"
-    repository: "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B"
-
 #  gemma-300M:
 #    name: "google/embeddinggemma-300M"
 #    type: "embeddings"
-#    repository: "https://huggingface.co/google/embeddinggemma-300m"
 
 #  multilingual-e5-small:
 #    name: "intfloat/multilingual-e5-small"
 #    type: "embeddings"
-#    repository: "https://huggingface.co/intfloat/multilingual-e5-small"
 
 #  splade-pp-v1:
 #    name: "prithivida/Splade_PP_en_v1"
 #    type: "sparse-embeddings"
-#    repository: "https://huggingface.co/prithivida/Splade_PP_en_v1"
 
   splade-pp-v2:
     name: "prithivida/Splade_PP_en_v2"
     type: "sparse-embeddings"
-    repository: "https://huggingface.co/prithivida/Splade_PP_en_v2"
-
+    
 #  naver-splade-v3:
 #    name: "naver/splade-v3"
 #    type: "sparse-embeddings"
-#    repository: "https://huggingface.co/naver/splade-v3"

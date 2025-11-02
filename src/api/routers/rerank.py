@@ -94,7 +94,7 @@ async def rerank_documents(
 
         # Build results with original indices
         original_indices, documents_list = zip(*valid_docs)
-        results: List[RerankResult] = []
+        results = []
 
         for i, (orig_idx, doc) in enumerate(zip(original_indices, documents_list)):
             results.append(RerankResult(text=doc, score=scores[i], index=orig_idx))

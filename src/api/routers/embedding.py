@@ -168,7 +168,7 @@ async def create_embeddings_document(
 @router.post(
     "/query",
     response_model=Union[DenseEmbedResponse, SparseEmbedResponse],
-    summary="Generate single/batch embeddings spesialization document",
+    summary="Generate single/batch embeddings spesialization query",
     description="Generate embedding for a multiple query text",
 )
 async def create_query_embedding(
@@ -250,10 +250,11 @@ async def create_query_embedding(
             processing_time = time.time() - start_time
 
             response = DenseEmbedResponse(
-                embedding=embeddings[0],
+                embeddings=embeddings[0],
                 dimension=len(embeddings[0]),
                 model_id=request.model_id,
                 processing_time=processing_time,
+                count=len(embeddings),
             )
 
         # Cache the result

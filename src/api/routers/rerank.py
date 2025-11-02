@@ -92,6 +92,16 @@ async def rerank_documents(
 
         processing_time = time.time() - start
 
+        # Sebelum memanggil rank_document, tambahkan:
+        logger.debug(f"Rerank request - Query: '{request.query}'")
+        logger.debug(f"Documents to rank: {len(request.documents)}")
+        logger.debug(f"First document: {request.documents[-1][:100]}...")
+        logger.debug(f"Top K: {request.top_k}")
+
+        # Setelah rank_document, tambahkan:
+        logger.debug(f"Ranking returned {len(scores)} scores")
+        logger.debug(f"Sample scores: {scores[:5] if scores else 'None'}")
+
         # Build results with original indices
         original_indices, documents_list = zip(*valid_docs)
         results = []

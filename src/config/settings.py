@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     """
 
     # Application Info
-    APP_NAME: str = "Unified Embedding API - Dense & Sparse Embedding"
-    VERSION: str = "3.5.0"
+    APP_NAME: str = "Unified Embedding API - Dense, Sparse & Reranking"
+    VERSION: str = "3.5.1"
     DEBUG: bool = False
     ENVIRONMENT: str = "development"  # development, staging, production
 

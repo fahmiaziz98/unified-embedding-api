@@ -21,11 +21,11 @@ from src.core.exceptions import (
 from src.api.dependencies import get_model_manager
 from src.utils.validators import extract_embedding_kwargs
 
-router = APIRouter(tags=["rerank"])
+router = APIRouter(prefix="/rerank",tags=["rerank"])
 
 
 @router.post(
-    "/rerank",
+    "",
     response_model=RerankResponse,
     summary="Rerank documents",
     description="Reranks the provided documents based on the given query.",

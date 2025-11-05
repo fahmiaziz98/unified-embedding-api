@@ -48,7 +48,7 @@ class DenseEmbedResponse(BaseEmbedResponse):
     """
     object: Literal["list"] = "list"
     data: List[EmbeddingObject]
-    model_id: str = Field(..., description="Model identifier used")
+    model: str = Field(..., description="Model identifier used")
     usage: TokenUsage = Field(..., description="Usage statistics")
 
     class Config:        

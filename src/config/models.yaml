@@ -13,7 +13,7 @@ models:
 
   splade-large-query:
     name: "naver/efficient-splade-VI-BT-large-query"
-    type: "sparse-embeddings
+    type: "sparse-embeddings"
     
   bge-v2-m3:
     name: "BAAI/bge-reranker-v2-m3"

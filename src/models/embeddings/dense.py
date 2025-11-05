@@ -111,6 +111,7 @@ class DenseEmbeddingModel(BaseEmbeddingModel):
             self.load()
 
         try:
+            logger.debug(f"🧩 Input ke SentenceTransformer.encode(): {input}")
             embeddings = self.model.encode(input, **kwargs)
 
             return [

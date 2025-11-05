@@ -7,8 +7,6 @@ sdk: docker
 pinned: false
 ---
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
-
 # 🧠 Unified Embedding API
 
 > 🧩 Unified API for all your Embedding, Sparse & Reranking Models — plug and play with any model from Hugging Face or your own fine-tuned versions.
@@ -19,7 +17,7 @@ Check out the configuration reference at https://huggingface.co/docs/hub/spaces-
 
 **Unified Embedding API** is a modular and open-source **RAG-ready API** built for developers who want a simple, unified way to access **dense**, **sparse**, and **reranking** models.
 
-It’s designed for **vector search**, **semantic retrieval**, and **AI-powered pipelines** — all controlled from a single `config.yaml` file.
+It's designed for **vector search**, **semantic retrieval**, and **AI-powered pipelines** — all controlled from a single `config.yaml` file.
 
 ⚠️ **Note:** This is a development API.  
 For production deployment, host it on cloud platforms such as **Hugging Face TEI**, **AWS**, **GCP**, or any cloud provider of your choice.
@@ -28,13 +26,13 @@ For production deployment, host it on cloud platforms such as **Hugging Face TEI
 
 ## 🧩 Features
 
-- 🧠 **Unified Interface** — One API to handle dense, sparse, and reranking models.
-- ⚡ **Batch Processing** — Automatic single/batch.
+- 🧠 **Unified Interface** — One API to handle dense, sparse, and reranking models
+- ⚡ **Batch Processing** — Automatic single/batch detection
 - 🔧 **Flexible Parameters** — Full control via kwargs and options
-- 🔍 **Vector DB Ready** — Easily integrates with FAISS, Chroma, Qdrant, Milvus, etc.
-- 📈 **RAG Support** — Perfect base for Retrieval-Augmented Generation systems.
-- ⚡ **Fast & Lightweight** — Powered by FastAPI and optimized with async processing.
-- 🧰 **Extendable** —  Switch models instantly via `config.yaml` and add your own models or pipelines effortlessly.
+- 🔌 **OpenAI Compatible** — Works with OpenAI client libraries
+- 📈 **RAG Support** — Perfect base for Retrieval-Augmented Generation systems
+- ⚡ **Fast & Lightweight** — Powered by FastAPI and optimized with async processing
+- 🧰 **Extendable** — Switch models instantly via `config.yaml` and add your own models effortlessly
 
 ---
 
@@ -48,8 +46,8 @@ unified-embedding-api/
 │   │   └── routes/
 │   │       ├── embeddings.py  # endpoint sparse & dense   
 │   │       ├── models.py
-│   │       |── health.py
-│   │       └── rerank.py       # endpoint reranking
+│   │       ├── health.py
+│   │       └── rerank.py      # endpoint reranking
 │   ├── core/
 │   │   ├── base.py
 │   │   ├── config.py
@@ -57,16 +55,16 @@ unified-embedding-api/
 │   │   └── manager.py
 │   ├── models/
 │   │   ├── embeddings/
-│   │   │   ├── dense.py        # dense model
-│   │   │   └── sparse.py       # sparse model
-│   │   │   └── rank.py         # reranking model
+│   │   │   ├── dense.py       # dense model
+│   │   │   ├── sparse.py      # sparse model
+│   │   │   └── rank.py        # reranking model
 │   │   └── schemas/
 │   │       ├── common.py
 │   │       ├── requests.py       
 │   │       └── responses.py
 │   ├── config/
 │   │   ├── settings.py
-│   │   └── models.yaml         # add/change models here
+│   │   └── models.yaml        # add/change models here
 │   └── utils/
 │       ├── logger.py
 │       └── validators.py
@@ -77,7 +75,9 @@ unified-embedding-api/
 ├── Dockerfile
 └── README.md
 ```
+
 ---
+
 ## 🧩 Model Selection
 
 Default configuration is optimized for **CPU 2vCPU / 16GB RAM**. See [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard) for model recommendations and memory usage reference.
@@ -105,7 +105,7 @@ Deploy your **Custom Embedding API** on **Hugging Face Spaces** — free, fast, 
    👉 [fahmiaziz/api-embedding](https://huggingface.co/spaces/fahmiaziz/api-embedding)  
    Click **⋯** (three dots) → **Duplicate this Space**
 
-2. **Add HF_TOKEN environment variable**  Make sure your space is public
+2. **Add HF_TOKEN environment variable**. Make sure your space is public
 
 3. **Clone your Space locally:**  
    Click **⋯** → **Clone repository**
@@ -129,14 +129,14 @@ Deploy your **Custom Embedding API** on **Hugging Face Spaces** — free, fast, 
    git push
    ```
 
-6. **Access your API:**
-  Click **⋯** →  **Embed this Space** -> copy **Direct URL**
+6. **Access your API:**  
+   Click **⋯** → **Embed this Space** → copy **Direct URL**
    ```
    https://YOUR_USERNAME-api-embedding.hf.space
    https://YOUR_USERNAME-api-embedding.hf.space/docs  # Interactive docs
    ```
 
-That’s it! You now have a live embedding API endpoint powered by your models.
+That's it! You now have a live embedding API endpoint powered by your models.
 
 ### **2️⃣ Run Locally (NOT RECOMMENDED)**
 
@@ -169,104 +169,86 @@ docker build -t embedding-api .
 docker run -p 7860:7860 embedding-api
 ```
 
+---
+
 ## 📖 Usage Examples
 
-### **Python**
+### **Python with Native API**
 
 ```python
 import requests
 
-url = "http://localhost:7860/api/v1/embeddings/embed"
+base_url = "https://fahmiaziz-api-embedding.hf.space/api/v1"
 
 # Single embedding
-response = requests.post(url, json={
-    "texts": ["What is artificial intelligence?"],
-    "model_id": "qwen3-0.6b"
+response = requests.post(f"{base_url}/embeddings", json={
+    "input": "What is artificial intelligence?",
+    "model": "qwen3-0.6b"
 })
-print(response.json())
+embeddings = response.json()["data"]
 
-# Batch embeddings
-response = requests.post(url, json={
-    "texts": [
-        "First document",
-        "Second document", 
-        "Third document"
-    ],
-    "model_id": "qwen3-0.6b",
+# Batch embeddings with options
+response = requests.post(f"{base_url}/embeddings", json={
+    "input": ["First document", "Second document", "Third document"],
+    "model": "qwen3-0.6b",
     "options": {
         "normalize_embeddings": True
     }
 })
-embeddings = response.json()["embeddings"]
+batch_embeddings = response.json()["data"]
 ```
 
 ### **cURL**
 
 ```bash
-# Single embedding (Dense)
-curl -X POST "http://localhost:7860/api/v1/embeddings/embed" \
+# Dense embeddings
+curl -X POST "https://fahmiaziz-api-embedding.hf.space/api/v1/embeddings" \
   -H "Content-Type: application/json" \
   -d '{
-    "texts": ["Hello world"],
-    "prompt": "add instructions here",
-    "model_id": "qwen3-0.6b"
+    "input": ["Hello world"],
+    "model": "qwen3-0.6b"
   }'
 
-# Batch embeddings (Sparse)
-curl -X POST "http://localhost:7860/api/v1/embeddings/embed" \
+# Sparse embeddings
+curl -X POST "https://fahmiaziz-api-embedding.hf.space/api/v1/embed_sparse" \
   -H "Content-Type: application/json" \
   -d '{
-    "texts": ["First doc", "Second doc", "Third doc"],
-    "model_id": "splade-pp-v2"
+    "input": ["First doc", "Second doc", "Third doc"],
+    "model": "splade-pp-v2"
   }'
 
 # Reranking
-curl -X POST "http://localhost:7860/api/v1/rerank" \
+curl -X POST "https://fahmiaziz-api-embedding.hf.space/api/v1/rerank" \
   -H "Content-Type: application/json" \
   -d '{
-  "documents": [
-    "Python is a popular language for data science due to its extensive libraries.",
-    "R is widely used in statistical computing and data analysis.",
-    "Java is a versatile language used in various applications, including data science.",
-    "SQL is essential for managing and querying relational databases.",
-    "Julia is a high-performance language gaining popularity for numerical computing and data science."
-  ],
-  "model_id": "bge-v2-m3",
-  "query": "Python best programming languages for data science",
-  "top_k": 3
-}'
-
-# Query embedding with options
-curl -X POST "http://localhost:7860/api/v1/embeddings/query" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "texts": ["What is machine learning?"],
-    "model_id": "qwen3-0.6b",
-    "options": {
-      "normalize_embeddings": true,
-      "batch_size": 32
-    }
+    "query": "Python for data science",
+    "documents": [
+      "Python is great for data science",
+      "Java is used for enterprise apps",
+      "R is for statistical analysis"
+    ],
+    "model": "bge-v2-m3",
+    "top_k": 2
   }'
 ```
 
 ### **JavaScript/TypeScript**
 
 ```typescript
-const url = "http://localhost:7860/api/v1/embeddings/embed";
+const baseUrl = "https://fahmiaziz-api-embedding.hf.space/api/v1";
 
-const response = await fetch(url, {
+// Using fetch
+const response = await fetch(`${baseUrl}/embeddings`, {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     texts: ["Hello world"],
     model_id: "qwen3-0.6b",
   }),
 });
 
-const data = await response.json();
-console.log(data.embedding);
+const { embeddings } = await response.json();
+console.log(embeddings);
 ```
 
 ---
@@ -275,17 +257,91 @@ console.log(data.embedding);
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/v1/embeddings/embed` | POST | Generate document embeddings (single/batch) |
-| `/api/v1/embeddings/query` | POST | Generate query embeddings (single/batch) |
-| `/api/v1/rerank` | POST | Rerank documents based on a query |
+| `/api/v1/embeddings` | POST | Generate embeddings (OpenAI compatible) |
+| `/api/v1/embed_sparse` | POST | Generate sparse embeddings |
+| `/api/v1/rerank` | POST | Rerank documents by relevance |
 | `/api/v1/models` | GET | List available models |
 | `/api/v1/models/{model_id}` | GET | Get model information |
 | `/health` | GET | Health check |
 | `/` | GET | API information |
 | `/docs` | GET | Interactive API documentation |
 
+---
 
-### 🤝 Contributing
+## 🔌 OpenAI Client Compatibility
+
+This API is **fully compatible** with OpenAI's client libraries, making it a drop-in replacement for OpenAI's embedding API.
+
+### **Why use OpenAI client?**
+
+✅ **Familiar API** — Same interface as OpenAI  
+✅ **Type Safety** — Full type hints and IDE support  
+✅ **Error Handling** — Built-in retry logic and error handling  
+✅ **Async Support** — Native async/await support  
+✅ **Easy Migration** — Switch between OpenAI and self-hosted seamlessly
+
+### **Supported Features**
+
+| Feature | Supported | Notes |
+|---------|-----------|-------|
+| `embeddings.create()` | ✅ Yes | Single and batch inputs |
+| `input` as string | ✅ Yes | Auto-converted to list |
+| `input` as list | ✅ Yes | Batch processing |
+| `model` parameter | ✅ Yes | Use your model IDs |
+| `encoding_format` | ⚠️ Partial | Always returns `float` |
+
+### **Example with OpenAI Client (Compatible!)**
+
+```python
+from openai import OpenAI
+
+# Initialize client with your API endpoint
+client = OpenAI(
+    base_url="https://fahmiaziz-api-embedding.hf.space/api/v1",
+    api_key="-"  # API key not required, but must be present
+)
+
+# Generate embeddings
+embedding = client.embeddings.create(
+    input="Hello",
+    model="qwen3-0.6b"
+)
+
+# Access results
+for item in embedding.data:
+    print(f"Embedding: {item.embedding[:5]}...")  # First 5 dimensions
+    print(f"Index: {item.index}")
+```
+
+### **Async OpenAI Client**
+
+```python
+from openai import AsyncOpenAI
+
+# Initialize async client
+client = AsyncOpenAI(
+    base_url="https://fahmiaziz-api-embedding.hf.space/api/v1",
+    api_key="-"
+)
+
+# Generate embeddings asynchronously
+async def get_embeddings():
+    try:
+        embedding = await client.embeddings.create(
+            input=["Hello", "World", "AI"],
+            model="qwen3-0.6b"
+        )
+        return embedding
+    except Exception as e:
+        print(f"Error: {e}")
+
+# Use in async context
+embeddings = await get_embeddings()
+```
+
+---
+
+## 🤝 Contributing
 
 Contributions are welcome! Please:
 
@@ -295,15 +351,6 @@ Contributions are welcome! Please:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-**Development Setup:**
-
-```bash
-git clone https://github.com/fahmiaziz/unified-embedding-api.git
-cd unified-embedding-api
-pip install -r requirements-dev.txt
-pre-commit install  # (optional)
-```
-
 ---
 
 ## 📚 Resources
@@ -311,12 +358,12 @@ pre-commit install  # (optional)
 - [API Documentation](API.md)
 - [Sentence Transformers](https://www.sbert.net/)
 - [FastAPI Docs](https://fastapi.tiangolo.com/)
+- [OpenAI Python Client](https://github.com/openai/openai-python)
 - [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard)
 - [Hugging Face Spaces](https://huggingface.co/docs/hub/spaces)
-- [Deploy Applications on Hugging Face Spaces (Official Guide)](https://huggingface.co/blog/HemanthSai7/deploy-applications-on-huggingface-spaces)
-- [How-to-Sync-Hugging-Face-Spaces-with-a-GitHub-Repository by Ruslanmv](https://github.com/ruslanmv/How-to-Sync-Hugging-Face-Spaces-with-a-GitHub-Repository?tab=readme-ov-file)
-- [Duplicate & Clone space to local machine](https://huggingface.co/docs/hub/spaces-overview#duplicating-a-space)
----
+- [Deploy Applications on Hugging Face Spaces](https://huggingface.co/blog/HemanthSai7/deploy-applications-on-huggingface-spaces)
+- [Sync HF Spaces with GitHub](https://github.com/ruslanmv/How-to-Sync-Hugging-Face-Spaces-with-a-GitHub-Repository)
+- [Duplicate & Clone Spaces](https://huggingface.co/docs/hub/spaces-overview#duplicating-a-space)
 
 ---
 
@@ -331,27 +378,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Sentence Transformers** for the embedding models
 - **FastAPI** for the excellent web framework
 - **Hugging Face** for model hosting and Spaces
+- **OpenAI** for the client library design
 - **Open Source Community** for inspiration and support
 
 ---
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://github.com/fahmiaziz/unified-embedding-api/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/fahmiaziz/unified-embedding-api/discussions)
+- **Issues:** [GitHub Issues](https://github.com/fahmiaziz98/unified-embedding-api/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/fahmiaziz98/unified-embedding-api/discussions)
 - **Hugging Face Space:** [fahmiaziz/api-embedding](https://huggingface.co/spaces/fahmiaziz/api-embedding)
 
 ---
 
-> ✨ “Unify your embeddings. Simplify your AI stack.”
-
 <div align="center">
-
-**⭐ Star this repo if you find it useful!**
 
 Made with ❤️ by the Open-Source Community
 
+> ✨ "Unify your embeddings. Simplify your AI stack."
+
 </div>
-
-
-

@@ -32,6 +32,30 @@ from src.config.settings import get_settings
 router = APIRouter(tags=["embeddings"])
 
 
+def _ensure_model_type(
+    config, expected_type: str, model_id: str
+) -> None:
+    """
+    Validate that the model configuration matches the expected type.
+
+    Raises:
+        HTTPException: If the model is missing or the type does not match.
+    """
+    if config is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Model '{model_id}' not found.",
+        )
+    if config.type != expected_type:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Model '{model_id}' is not a {expected_type.replace('-', ' ')} "
+                f"model. Detected type: {config.type}"
+            ),
+        )
+
+
 @router.post(
     "/embeddings",
     response_model=DenseEmbedResponse,
@@ -46,13 +70,10 @@ async def create_embeddings_document(
     """
     Generate embeddings for multiple texts.
 
-    Args:
-        request: BatchEmbedRequest with input, model, and optional parameters
-        manager: Model manager dependency
-        settings: Application settings
+    The endpoint validates the request, checks that the requested
+    model is a dense embedding model, and returns a
+    :class:`DenseEmbedResponse`.
 
-    Returns:
-        DenseEmbedResponse 
     Raises:
         HTTPException: On validation or generation errors
     """
@@ -66,43 +87,35 @@ async def create_embeddings_document(
         kwargs = extract_embedding_kwargs(request)
 
         model = manager.get_model(request.model)
-        config = manager.model_configs[request.model]
+        config = manager.model_configs.get(request.model)
+
+        _ensure_model_type(config, "embeddings", request.model)
 
         start_time = time.time()
 
-        if config.type == "embeddings":
-            embeddings = model.embed(
-                input=request.input, **kwargs
-            )
-            processing_time = time.time() - start_time
+        embeddings = model.embed(input=request.input, **kwargs)
+        processing_time = time.time() - start_time
 
-            data = []
-            for idx, embedding in enumerate(embeddings):
-                data.append(
-                    EmbeddingObject(
-                        object="embedding",
-                        embedding=embedding,
-                        index=idx,
-                    )
-                )
-            
-            # Calculate token usage
-            token_usage = TokenUsage(
-                prompt_tokens=count_tokens_batch(request.input),
-                total_tokens=count_tokens_batch(request.input),
+        data = [
+            EmbeddingObject(
+                object="embedding",
+                embedding=embedding,
+                index=idx,
             )
+            for idx, embedding in enumerate(embeddings)
+        ]
 
-            response = DenseEmbedResponse(
-                object="list",
-                data=data,
-                model=request.model,
-                usage=token_usage,
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Model '{request.model}' is not a dense model. Type: {config.type}",
-            )
+        token_usage = TokenUsage(
+            prompt_tokens=count_tokens_batch(request.input),
+            total_tokens=count_tokens_batch(request.input),
+        )
+
+        response = DenseEmbedResponse(
+            object="list",
+            data=data,
+            model=request.model,
+            usage=token_usage,
+        )
 
         logger.info(
             f"Generated {len(request.input)} embeddings "
@@ -138,12 +151,9 @@ async def create_sparse_embedding(
     """
     Generate a single/batch sparse embedding.
 
-    Args:
-        request: EmbedRequest with input, model, and optional parameters
-        manager: Model manager dependency
-
-    Returns:
-        SparseEmbedResponse 
+    The endpoint validates the request, checks that the requested
+    model is a sparse embedding model, and returns a
+    :class:`SparseEmbedResponse`.
 
     Raises:
         HTTPException: On validation or generation errors
@@ -153,41 +163,33 @@ async def create_sparse_embedding(
         kwargs = extract_embedding_kwargs(request)
 
         model = manager.get_model(request.model)
-        config = manager.model_configs[request.model]
+        config = manager.model_configs.get(request.model)
+
+        _ensure_model_type(config, "sparse-embeddings", request.model)
 
         start_time = time.time()
 
-        if config.type == "sparse-embeddings":
-            sparse_results = model.embed(
-                input=request.input, **kwargs
-            )
-            processing_time = time.time() - start_time
+        sparse_results = model.embed(input=request.input, **kwargs)
+        processing_time = time.time() - start_time
 
-            sparse_embeddings = []
-            for idx, sparse_result in enumerate(sparse_results):
-                sparse_embeddings.append(
-                    SparseEmbedding(
-                        text=request.input[idx],
-                        indices=sparse_result["indices"],
-                        values=sparse_result["values"],
-                    )
-                )
+        sparse_embeddings = [
+            SparseEmbedding(
+                text=request.input[idx],
+                indices=sparse_result["indices"],
+                values=sparse_result["values"],
+            )
+            for idx, sparse_result in enumerate(sparse_results)
+        ]
 
-            response = SparseEmbedResponse(
-                embeddings=sparse_embeddings,
-                count=len(sparse_embeddings),
-                model=request.model
-            )
-        
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Model '{request.model}' is not a sparse model. Type: {config.type}",
-            )
+        response = SparseEmbedResponse(
+            embeddings=sparse_embeddings,
+            count=len(sparse_embeddings),
+            model=request.model,
+        )
 
         logger.info(
-            f"Generated {len(request.texts)} embeddings "
-            f"in {processing_time:.3f}s ({len(request.texts) / processing_time:.1f} texts/s)"
+            f"Generated {len(request.input)} embeddings "
+            f"in {processing_time:.3f}s ({len(request.input) / processing_time:.1f} texts/s)"
         )
 
         return response
@@ -199,8 +201,9 @@ async def create_sparse_embedding(
     except EmbeddingGenerationError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:
-        logger.exception("Unexpected error in create_query_embedding")
+        logger.exception("Unexpected error in create_sparse_embedding")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create query embedding: {str(e)}",
         )
+    

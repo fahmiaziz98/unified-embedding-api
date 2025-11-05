@@ -40,12 +40,12 @@ class BaseEmbedRequest(BaseModel):
         None, description="Optional embedding generation parameters"
     )
 
-    @field_validator("model_id")
+    @field_validator("model")
     @classmethod
     def validate_model_id(cls, v: str) -> str:
-        """Validate that model_id is not empty."""
+        """Validate that model is not empty."""
         if not v or not v.strip():
-            raise ValueError("model_id cannot be empty")
+            raise ValueError("model cannot be empty")
         return v.strip()
 
     model_config = ConfigDict(
@@ -60,9 +60,7 @@ class EmbedRequest(BaseEmbedRequest):
     Used for /embeddings and /embed_sparse endpoint to process multiple texts at once.
 
     Attributes:
-        texts: List of input texts to embed
-        model_id: Identifier of the model to use
-        prompt: Optional prompt for instruction-based models
+        input: List of input texts to embed
     """
 
     input: List[str] = Field(
@@ -71,7 +69,7 @@ class EmbedRequest(BaseEmbedRequest):
         min_length=1,
     )
 
-    @field_validator("texts")
+    @field_validator("input")
     @classmethod
     def validate_texts(cls, v: List[str]) -> List[str]:
         """Validate that all texts are non-empty."""

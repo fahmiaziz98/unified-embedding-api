@@ -69,19 +69,10 @@ class EmbedRequest(BaseEmbedRequest):
     def validate_texts(cls, v: Union[str, List[str]]) -> List[str]:
         """Validate that all texts are non-empty."""
         if not v:
-            raise ValueError("texts list cannot be empty")
+            raise ValueError("Input cannot be empty")
+        
+        return v
 
-        if len(v) > 100:
-            raise ValueError(f"Batch size ({len(v)}) exceeds maximum (100)")
-
-        # Validate each text
-        validated = []
-        for idx, text in enumerate(v):
-            if not isinstance(text, str):
-                raise ValueError(f"texts[{idx}] must be a string")
-            validated.append(text)
-
-        return validated
 
     class Config:
         json_schema_extra = {

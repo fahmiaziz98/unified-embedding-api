@@ -75,10 +75,10 @@ async def create_embeddings(
         HTTPException: On validation or generation errors
     """
 
-    if isinstance(request.input, str):
-        texts = [request.input]
-
     try:
+        if isinstance(request.input, str):
+            texts = [request.input]
+
         kwargs = extract_embedding_kwargs(request)
 
         model = manager.get_model(request.model)
@@ -153,10 +153,11 @@ async def create_sparse_embedding(
     Raises:
         HTTPException: On validation or generation errors
     """
-    if isinstance(request.input, str):
-        texts = [request.input]
 
     try:
+        if isinstance(request.input, str):
+            texts = [request.input]
+            
         kwargs = extract_embedding_kwargs(request)
 
         model = manager.get_model(request.model)

@@ -2,21 +2,18 @@ models:
   qwen3-0.6b:
     name: "Qwen/Qwen3-Embedding-0.6B"
     type: "embeddings"
-#  gemma-300M:
-#    name: "google/embeddinggemma-300M"
-#    type: "embeddings"
 
-#  multilingual-e5-small:
-#    name: "intfloat/multilingual-e5-small"
-#    type: "embeddings"
-
-#  splade-pp-v1:
-#    name: "prithivida/Splade_PP_en_v1"
-#    type: "sparse-embeddings"
+  gemma-300M:
+    name: "google/embeddinggemma-300M"
+    type: "embeddings"
 
   splade-pp-v2:
     name: "prithivida/Splade_PP_en_v2"
     type: "sparse-embeddings"
+
+  splade-large-query:
+    name: "naver/efficient-splade-VI-BT-large-query"
+    type: "sparse-embeddings
     
   bge-v2-m3:
     name: "BAAI/bge-reranker-v2-m3"

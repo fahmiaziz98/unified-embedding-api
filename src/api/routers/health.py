@@ -40,7 +40,7 @@ async def root(settings=Depends(get_settings)):
     return RootResponse(
         message=f"{settings.APP_NAME}",
         version=settings.VERSION,
-        docs_url="/docs",
+        docs_url="https://fahmiaziz-api-embedding.hf.space/docs",
     )
 
 

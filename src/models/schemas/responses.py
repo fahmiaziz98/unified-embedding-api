@@ -23,6 +23,7 @@ class BaseEmbedResponse(BaseModel):
 
 class EmbeddingObject(BaseModel):
     """Single embedding object."""
+
     object: Literal["embedding"] = "embedding"
     embedding: List[float] = Field(..., description="Embedding vector")
     index: int = Field(..., description="Index of the embedding")
@@ -30,6 +31,7 @@ class EmbeddingObject(BaseModel):
 
 class TokenUsage(BaseModel):
     """Usage statistics."""
+
     prompt_tokens: int
     total_tokens: int
 
@@ -44,14 +46,15 @@ class DenseEmbedResponse(BaseEmbedResponse):
         data: List of generated dense embeddings
         model: Identifier of the model used
         usage: Usage statistics
-        
+
     """
+
     object: Literal["list"] = "list"
     data: List[EmbeddingObject]
     model: str = Field(..., description="Model identifier used")
     usage: TokenUsage = Field(..., description="Usage statistics")
 
-    class Config:        
+    class Config:
         json_schema_extra = {
             "example": {
                 "object": "list",

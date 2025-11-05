@@ -6,7 +6,6 @@ It accepts a list of documents and returns a ranked list based on relevance to t
 """
 
 import time
-from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from loguru import logger
 
@@ -21,7 +20,7 @@ from src.core.exceptions import (
 from src.api.dependencies import get_model_manager
 from src.utils.validators import extract_embedding_kwargs
 
-router = APIRouter(prefix="/rerank",tags=["rerank"])
+router = APIRouter(prefix="/rerank", tags=["rerank"])
 
 
 @router.post(
@@ -91,20 +90,16 @@ async def rerank_documents(
         processing_time = time.time() - start
 
         results = []
-        
+
         for rank_result in ranking_results:
-            doc_idx = rank_result.get('corpus_id', 0)  
+            doc_idx = rank_result.get("corpus_id", 0)
             if doc_idx < len(valid_docs):
                 original_idx = valid_docs[doc_idx][0]  # Original index
                 doc_text = documents_list[doc_idx]
-                score = rank_result['score']
-                
+                score = rank_result["score"]
+
                 results.append(
-                    RerankResult(
-                        text=doc_text,
-                        score=score,
-                        index=original_idx
-                    )
+                    RerankResult(text=doc_text, score=score, index=original_idx)
                 )
 
         logger.info(

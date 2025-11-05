@@ -113,22 +113,17 @@ class RerankModel:
         """
         if not self._loaded or self.model is None:
             self.load()
-        
+
         try:
-            ranking_results = self.model.rank(
-                query, 
-                documents, 
-                top_k=top_k, 
-                **kwargs
-            )
-            
+            ranking_results = self.model.rank(query, documents, top_k=top_k, **kwargs)
+
             # Normalize scores to 0-1 range for consistency
             normalized_results = self._normalize_rerank_scores(ranking_results)
-            
+
             logger.debug(
                 f"Reranked {len(documents)} docs, returned top {len(normalized_results)}"
             )
-            
+
             return normalized_results
 
         except Exception as e:
@@ -137,9 +132,7 @@ class RerankModel:
             raise RerankingDocumentError(self.model_id, error_msg)
 
     def _normalize_rerank_scores(
-        self, 
-        rankings: List[Dict], 
-        target_range: tuple = (0, 1)
+        self, rankings: List[Dict], target_range: tuple = (0, 1)
     ) -> List[Dict]:
         """
         Normalize reranking scores using min-max normalization.
@@ -154,35 +147,30 @@ class RerankModel:
         """
         if not rankings:
             return []
-        
+
         raw_scores = [ranking["score"] for ranking in rankings]
-        
+
         min_score = min(raw_scores)
         max_score = max(raw_scores)
-        
+
         if max_score == min_score:
             return [
-                {
-                    "corpus_id": r["corpus_id"],
-                    "score": target_range[1]
-                }
+                {"corpus_id": r["corpus_id"], "score": target_range[1]}
                 for r in rankings
             ]
-        
+
         target_min, target_max = target_range
         normalized_rankings = []
-        
+
         for ranking in rankings:
             score = ranking["score"]
-            normalized_score = (
-                target_min + 
-                (score - min_score) * (target_max - target_min) / (max_score - min_score)
+            normalized_score = target_min + (score - min_score) * (
+                target_max - target_min
+            ) / (max_score - min_score)
+            normalized_rankings.append(
+                {"corpus_id": ranking["corpus_id"], "score": float(normalized_score)}
             )
-            normalized_rankings.append({
-                "corpus_id": ranking["corpus_id"],
-                "score": float(normalized_score)
-            })
-        
+
         return normalized_rankings
 
     @property

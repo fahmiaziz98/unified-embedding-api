@@ -13,7 +13,7 @@ from .common import EmbeddingOptions
 class BaseEmbedRequest(BaseModel):
     """
     OpenAI-compatible embedding request.
-    
+
     Matches the format of OpenAI's embeddings API:
     https://platform.openai.com/docs/api-reference/embeddings
     """
@@ -25,16 +25,11 @@ class BaseEmbedRequest(BaseModel):
     )
 
     encoding_format: Optional[Literal["float", "base64"]] = Field(
-        default="float", 
-        description="Encoding format"
+        default="float", description="Encoding format"
     )
-    dimensions: Optional[int] = Field(
-        None, 
-        description="Output dimensions")
+    dimensions: Optional[int] = Field(None, description="Output dimensions")
 
-    user: Optional[str] = Field(
-        None,
-        description="User identifier")
+    user: Optional[str] = Field(None, description="User identifier")
 
     options: Optional[EmbeddingOptions] = Field(
         None, description="Optional embedding generation parameters"

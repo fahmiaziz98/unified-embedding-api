@@ -112,7 +112,7 @@ class DenseEmbeddingModel(BaseEmbeddingModel):
 
         try:
             embeddings = self.model.encode(input, **kwargs)
-            
+
             return [
                 emb.tolist() if hasattr(emb, "tolist") else list(emb)
                 for emb in embeddings

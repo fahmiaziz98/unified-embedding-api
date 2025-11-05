@@ -25,16 +25,18 @@ from src.core.exceptions import (
     ValidationError,
 )
 from src.api.dependencies import get_model_manager
-from src.utils.validators import extract_embedding_kwargs, validate_texts, count_tokens_batch
+from src.utils.validators import (
+    extract_embedding_kwargs,
+    validate_texts,
+    count_tokens_batch,
+)
 from src.config.settings import get_settings
 
 
 router = APIRouter(tags=["embeddings"])
 
 
-def _ensure_model_type(
-    config, expected_type: str, model_id: str
-) -> None:
+def _ensure_model_type(config, expected_type: str, model_id: str) -> None:
     """
     Validate that the model configuration matches the expected type.
 
@@ -206,4 +208,3 @@ async def create_sparse_embedding(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create query embedding: {str(e)}",
         )
-    

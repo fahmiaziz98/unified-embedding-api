@@ -79,8 +79,6 @@ class EmbedRequest(BaseEmbedRequest):
         for idx, text in enumerate(v):
             if not isinstance(text, str):
                 raise ValueError(f"texts[{idx}] must be a string")
-            if not text.strip():
-                raise ValueError(f"texts[{idx}] cannot be empty or whitespace only")
             validated.append(text)
 
         return validated

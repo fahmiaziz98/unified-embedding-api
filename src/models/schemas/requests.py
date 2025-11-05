@@ -130,7 +130,7 @@ class RerankRequest(BaseEmbedRequest):
     class Config:
         json_schema_extra = {
             "example": {
-                "model_id": "jina-reranker-v3",
+                "model": "jina-reranker-v3",
                 "query": "Python best programming languages for data science",
                 "top_k": 4,
                 "documents": [

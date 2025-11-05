@@ -105,8 +105,8 @@ async def create_embeddings_document(
             )
 
         logger.info(
-            f"Generated {len(request.texts)} embeddings "
-            f"in {processing_time:.3f}s ({len(request.texts) / processing_time:.1f} texts/s)"
+            f"Generated {len(request.input)} embeddings "
+            f"in {processing_time:.3f}s ({len(request.input) / processing_time:.1f} texts/s)"
         )
 
         return response
@@ -149,11 +149,11 @@ async def create_sparse_embedding(
         HTTPException: On validation or generation errors
     """
     try:
-        validate_texts(request.texts)
+        validate_texts(request.input)
         kwargs = extract_embedding_kwargs(request)
 
-        model = manager.get_model(request.model_id)
-        config = manager.model_configs[request.model_id]
+        model = manager.get_model(request.model)
+        config = manager.model_configs[request.model]
 
         start_time = time.time()
 
@@ -167,7 +167,7 @@ async def create_sparse_embedding(
             for idx, sparse_result in enumerate(sparse_results):
                 sparse_embeddings.append(
                     SparseEmbedding(
-                        text=request.texts[idx],
+                        text=request.input[idx],
                         indices=sparse_result["indices"],
                         values=sparse_result["values"],
                     )
@@ -176,14 +176,13 @@ async def create_sparse_embedding(
             response = SparseEmbedResponse(
                 embeddings=sparse_embeddings,
                 count=len(sparse_embeddings),
-                model_id=request.model_id,
-                processing_time=processing_time,
+                model=request.model
             )
         
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Model '{request.model_id}' is not a sparse model. Type: {config.type}",
+                detail=f"Model '{request.model}' is not a sparse model. Type: {config.type}",
             )
 
         logger.info(

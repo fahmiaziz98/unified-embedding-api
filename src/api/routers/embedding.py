@@ -27,11 +27,8 @@ from src.core.exceptions import (
 from src.api.dependencies import get_model_manager
 from src.utils.validators import (
     extract_embedding_kwargs,
-    validate_texts,
     count_tokens_batch,
 )
-from src.config.settings import get_settings
-
 
 router = APIRouter(tags=["embeddings"])
 
@@ -64,10 +61,8 @@ def _ensure_model_type(config, expected_type: str, model_id: str) -> None:
     summary="Generate single/batch embeddings",
     description="Generate embeddings for multiple texts in a single request",
 )
-async def create_embeddings_document(
-    request: EmbedRequest,
-    manager: ModelManager = Depends(get_model_manager),
-    settings=Depends(get_settings),
+async def create_embeddings(
+    request: EmbedRequest, manager: ModelManager = Depends(get_model_manager)
 ):
     """
     Generate embeddings for multiple texts.
@@ -79,13 +74,11 @@ async def create_embeddings_document(
     Raises:
         HTTPException: On validation or generation errors
     """
+
+    if isinstance(request.input, str):
+        texts = [request.input]
+
     try:
-        # Validate input
-        validate_texts(
-            request.input,
-            max_length=settings.MAX_TEXT_LENGTH,
-            max_batch_size=settings.MAX_BATCH_SIZE,
-        )
         kwargs = extract_embedding_kwargs(request)
 
         model = manager.get_model(request.model)
@@ -95,7 +88,7 @@ async def create_embeddings_document(
 
         start_time = time.time()
 
-        embeddings = model.embed(input=request.input, **kwargs)
+        embeddings = model.embed(input=texts, **kwargs)
         processing_time = time.time() - start_time
 
         data = [
@@ -108,8 +101,8 @@ async def create_embeddings_document(
         ]
 
         token_usage = TokenUsage(
-            prompt_tokens=count_tokens_batch(request.input),
-            total_tokens=count_tokens_batch(request.input),
+            prompt_tokens=count_tokens_batch(texts),
+            total_tokens=count_tokens_batch(texts),
         )
 
         response = DenseEmbedResponse(
@@ -120,8 +113,8 @@ async def create_embeddings_document(
         )
 
         logger.info(
-            f"Generated {len(request.input)} embeddings "
-            f"in {processing_time:.3f}s ({len(request.input) / processing_time:.1f} texts/s)"
+            f"Generated {len(texts)} embeddings "
+            f"in {processing_time:.3f}s ({len(texts) / processing_time:.1f} texts/s)"
         )
 
         return response
@@ -133,10 +126,10 @@ async def create_embeddings_document(
     except EmbeddingGenerationError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:
-        logger.exception("Unexpected error in create_embeddings_document")
+        logger.exception("Unexpected error in create_embeddings")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create batch embeddings: {str(e)}",
+            detail=f"Failed to create embeddings: {str(e)}",
         )
 
 
@@ -160,8 +153,10 @@ async def create_sparse_embedding(
     Raises:
         HTTPException: On validation or generation errors
     """
+    if isinstance(request.input, str):
+        texts = [request.input]
+
     try:
-        validate_texts(request.input)
         kwargs = extract_embedding_kwargs(request)
 
         model = manager.get_model(request.model)
@@ -171,12 +166,12 @@ async def create_sparse_embedding(
 
         start_time = time.time()
 
-        sparse_results = model.embed(input=request.input, **kwargs)
+        sparse_results = model.embed(input=texts, **kwargs)
         processing_time = time.time() - start_time
 
         sparse_embeddings = [
             SparseEmbedding(
-                text=request.input[idx],
+                text=texts[idx],
                 indices=sparse_result["indices"],
                 values=sparse_result["values"],
             )
@@ -190,8 +185,8 @@ async def create_sparse_embedding(
         )
 
         logger.info(
-            f"Generated {len(request.input)} embeddings "
-            f"in {processing_time:.3f}s ({len(request.input) / processing_time:.1f} texts/s)"
+            f"Generated {len(texts)} embeddings "
+            f"in {processing_time:.3f}s ({len(texts) / processing_time:.1f} texts/s)"
         )
 
         return response
@@ -206,5 +201,5 @@ async def create_sparse_embedding(
         logger.exception("Unexpected error in create_sparse_embedding")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create query embedding: {str(e)}",
+            detail=f"Failed to create sparse embedding: {str(e)}",
         )

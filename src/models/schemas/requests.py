@@ -5,7 +5,7 @@ This module defines all Pydantic models for incoming API requests,
 with validation and documentation.
 """
 
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Union
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 from .common import EmbeddingOptions
 
@@ -55,18 +55,18 @@ class EmbedRequest(BaseEmbedRequest):
     Used for /embeddings and /embed_sparse endpoint to process multiple texts at once.
 
     Attributes:
-        input: List of input texts to embed
+        input: Str or List of input texts to embed
     """
 
-    input: List[str] = Field(
+    input: Union[str, List[str]] = Field(
         ...,
-        description="List of input texts to generate embeddings for",
+        description="Str or List of input texts to generate embeddings for",
         min_length=1,
     )
 
     @field_validator("input")
     @classmethod
-    def validate_texts(cls, v: List[str]) -> List[str]:
+    def validate_texts(cls, v: Union[str, List[str]]) -> List[str]:
         """Validate that all texts are non-empty."""
         if not v:
             raise ValueError("texts list cannot be empty")
@@ -81,8 +81,6 @@ class EmbedRequest(BaseEmbedRequest):
                 raise ValueError(f"texts[{idx}] must be a string")
             if not text.strip():
                 raise ValueError(f"texts[{idx}] cannot be empty or whitespace only")
-            if len(text) > 8192:
-                raise ValueError(f"texts[{idx}] exceeds maximum length (8192)")
             validated.append(text)
 
         return validated

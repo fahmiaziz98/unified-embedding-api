@@ -37,7 +37,7 @@ async def rerank_documents(
     Rerank documents based on a query.
 
     This endpoint processes a list of documents and returns them ranked
-    according to their relevance to the query. 
+    according to their relevance to the query.
 
     Args:
         request: The request object containing the query and documents to rank

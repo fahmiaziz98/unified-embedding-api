@@ -18,37 +18,27 @@ class Settings(BaseSettings):
     same name. Example: APP_NAME="My API" in .env file.
     """
 
-    # Application Info
-    APP_NAME: str = "Unified Embedding API - Dense, Sparse & Reranking"
-    VERSION: str = "3.5.1"
+    APP_NAME: str = "Unified Embedding API - Dense, Sparse & Reranking Models"
+    VERSION: str = "3.5.6"
     DEBUG: bool = False
-    ENVIRONMENT: str = "development"  # development, staging, production
+    ENVIRONMENT: str = "development"
 
-    # Server Configuration
     HOST: str = "0.0.0.0"
     PORT: int = 7860
     WORKERS: int = 1
     RELOAD: bool = False
 
-    # Model Configuration
     MODEL_CONFIG_PATH: str = "src/config/models.yaml"
     MODEL_CACHE_DIR: str = "./model_cache"
     PRELOAD_MODELS: bool = True
 
-    # Request Limits
-    MAX_TEXT_LENGTH: int = 32000
-    MAX_BATCH_SIZE: int = 100
-    REQUEST_TIMEOUT: int = 30
-
-    # Logging
-    LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-    LOG_FILE: bool = True  # Write logs to file
+    LOG_LEVEL: str = "INFO"
+    LOG_FILE: bool = True
     LOG_DIR: str = "logs"
 
     CORS_ENABLED: bool = False
     CORS_ORIGINS: list[str] = ["*"]
 
-    # Model Settings
     DEVICE: str = "cpu"  # "cpu" or "cuda
     TRUST_REMOTE_CODE: bool = True  # For models requiring remote code
 

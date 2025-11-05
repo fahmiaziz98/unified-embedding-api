@@ -124,11 +124,6 @@ async def system_info(
                 "preload_complete": memory_info["preload_complete"],
                 "loaded_models": memory_info["loaded_models"],
             },
-            "limits": {
-                "max_text_length": settings.MAX_TEXT_LENGTH,
-                "max_batch_size": settings.MAX_BATCH_SIZE,
-                "request_timeout": settings.REQUEST_TIMEOUT,
-            },
         }
 
         return info

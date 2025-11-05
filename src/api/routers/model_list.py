@@ -141,36 +141,3 @@ async def load_model(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to load model: {str(e)}",
         )
-
-
-@router.get(
-    "/memory/usage",
-    summary="Get memory usage",
-    description="Get memory usage statistics for loaded models",
-)
-async def get_memory_usage(
-    manager: ModelManager = Depends(get_model_manager),
-) -> Dict[str, Any]:
-    """
-    Get memory usage statistics.
-
-    Returns information about:
-    - Total available models
-    - Currently loaded models
-    - Preload status
-
-    Args:
-        manager: Model manager dependency
-
-    Returns:
-        Dictionary with memory usage statistics
-    """
-    try:
-        return manager.get_memory_usage()
-
-    except Exception:
-        logger.exception("Failed to get memory usage")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get memory usage",
-        )

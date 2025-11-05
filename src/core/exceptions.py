@@ -74,16 +74,6 @@ class ValidationError(EmbeddingAPIException):
         self.reason = reason
 
 
-class TextTooLongError(ValidationError):
-    """Raised when input text exceeds maximum length."""
-
-    def __init__(self, text_length: int, max_length: int):
-        reason = f"Text length ({text_length}) exceeds maximum ({max_length})"
-        super().__init__("text", reason)
-        self.text_length = text_length
-        self.max_length = max_length
-
-
 class BatchTooLargeError(ValidationError):
     """Raised when batch size exceeds maximum allowed."""
 

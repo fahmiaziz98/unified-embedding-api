@@ -8,31 +8,10 @@ ensuring data quality and preventing abuse.
 from typing import List, Dict, Any
 from pydantic import BaseModel
 from src.core.exceptions import (
-    TextTooLongError,
     ValidationError,
     ModelNotFoundError,
     ModelTypeError,
 )
-
-
-def validate_text(text: str, max_length: int = 8192, allow_empty: bool = False) -> None:
-    """
-    Validate a single text input.
-
-    Args:
-        text: Input text to validate
-        max_length: Maximum allowed text length
-        allow_empty: Whether to allow empty strings
-
-    Raises:
-        ValidationError: If text is empty and not allowed
-        TextTooLongError: If text exceeds max_length
-    """
-    if not allow_empty and not text.strip():
-        raise ValidationError("text", "Text cannot be empty")
-
-    if len(text) > max_length:
-        raise TextTooLongError(len(text), max_length)
 
 
 def ensure_model_type(config, expected_type: str, model_id: str) -> None:

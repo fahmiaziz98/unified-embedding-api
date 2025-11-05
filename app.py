@@ -37,12 +37,10 @@ async def lifespan(app: FastAPI):
     logger.info(f"Environment: {settings.ENVIRONMENT}")
 
     try:
-        # Initialize model manager
         logger.info("Initializing model manager...")
         manager = ModelManager(settings.MODEL_CONFIG_PATH)
         dependencies.set_model_manager(manager)
 
-        # Preload models if enabled
         if settings.PRELOAD_MODELS:
             logger.info("Preloading models...")
             manager.preload_all_models()
@@ -57,7 +55,6 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Shutdown
     logger.info("Shutting down...")
 
     try:
@@ -80,12 +77,10 @@ def create_app() -> FastAPI:
     """
     settings = get_settings()
 
-    # Generate API description
     temp_manager = ModelManager(settings.MODEL_CONFIG_PATH)
     api_description = temp_manager.generate_api_description()
     del temp_manager
 
-    # Create FastAPI app
     app = FastAPI(
         title=settings.APP_NAME,
         description=api_description,
@@ -96,7 +91,6 @@ def create_app() -> FastAPI:
         debug=settings.DEBUG,
     )
 
-    # Add CORS middleware if enabled
     if settings.CORS_ENABLED:
         app.add_middleware(
             CORSMiddleware,
@@ -107,8 +101,7 @@ def create_app() -> FastAPI:
         )
         logger.info(f"CORS enabled for origins: {settings.CORS_ORIGINS}")
 
-    # Include routers
-    app.include_router(health.router)  # Root and health (no prefix)
+    app.include_router(health.router)
     app.include_router(embedding.router, prefix="/api/v1")
     app.include_router(rerank.router, prefix="/api/v1")
     app.include_router(model_list.router, prefix="/api/v1")

@@ -75,10 +75,12 @@ async def create_embeddings(
         HTTPException: On validation or generation errors
     """
 
-    try:
-        if isinstance(request.input, str):
-            texts = [request.input]
+    texts = [request.input] if isinstance(request.input, str) else request.input
 
+    if not texts or not isinstance(texts, list):
+        raise ValidationError("Input must be a non-empty list or string.")
+
+    try:
         kwargs = extract_embedding_kwargs(request)
 
         model = manager.get_model(request.model)
@@ -153,11 +155,12 @@ async def create_sparse_embedding(
     Raises:
         HTTPException: On validation or generation errors
     """
+    texts = [request.input] if isinstance(request.input, str) else request.input
+
+    if not texts or not isinstance(texts, list):
+        raise ValidationError("Input must be a non-empty list or string.")
 
     try:
-        if isinstance(request.input, str):
-            texts = [request.input]
-            
         kwargs = extract_embedding_kwargs(request)
 
         model = manager.get_model(request.model)

@@ -5,29 +5,37 @@ This module defines all Pydantic models for incoming API requests,
 with validation and documentation.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 from .common import EmbeddingOptions
 
 
 class BaseEmbedRequest(BaseModel):
     """
-    Base class for embedding requests.
-
-    Attributes:
-        model_id: Identifier of the model to use
-        prompt: Optional instruction prompt for instruction-based models
-        options: Optional embedding parameters (normalize, batch_size, etc.)
+    OpenAI-compatible embedding request.
+    
+    Matches the format of OpenAI's embeddings API:
+    https://platform.openai.com/docs/api-reference/embeddings
     """
 
-    model_id: str = Field(
+    model: str = Field(
         ...,
         description="Model identifier to use for embedding generation",
         examples=["qwen3-0.6b", "splade-pp-v2"],
     )
-    prompt: Optional[str] = Field(
-        None, description="Optional instruction prompt for the model", max_length=512
+
+    encoding_format: Optional[Literal["float", "base64"]] = Field(
+        default="float", 
+        description="Encoding format"
     )
+    dimensions: Optional[int] = Field(
+        None, 
+        description="Output dimensions")
+
+    user: Optional[str] = Field(
+        None,
+        description="User identifier")
+
     options: Optional[EmbeddingOptions] = Field(
         None, description="Optional embedding generation parameters"
     )
@@ -49,7 +57,7 @@ class EmbedRequest(BaseEmbedRequest):
     """
     Request model for single/batch text and sparse embedding.
 
-    Used for /embed and /query endpoint to process multiple texts at once.
+    Used for /embeddings and /embed_sparse endpoint to process multiple texts at once.
 
     Attributes:
         texts: List of input texts to embed
@@ -57,7 +65,7 @@ class EmbedRequest(BaseEmbedRequest):
         prompt: Optional prompt for instruction-based models
     """
 
-    texts: List[str] = Field(
+    input: List[str] = Field(
         ...,
         description="List of input texts to generate embeddings for",
         min_length=1,
@@ -89,13 +97,12 @@ class EmbedRequest(BaseEmbedRequest):
     class Config:
         json_schema_extra = {
             "example": {
-                "texts": [
+                "input": [
                     "First document to embed",
                     "Second document to embed",
                     "Third document to embed",
                 ],
-                "model_id": "qwen3-0.6b",
-                "prompt": "Represent this document for retrieval",
+                "model": "qwen3-0.6b",
                 "options": {
                     "normalize_embeddings": True,
                 },

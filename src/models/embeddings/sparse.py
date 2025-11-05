@@ -101,15 +101,12 @@ class SparseEmbeddingModel(BaseEmbeddingModel):
 
         return {"indices": indices, "values": values}
 
-    def embed_query(
-        self, texts: List[str], prompt: Optional[str] = None, **kwargs
-    ) -> List[Dict[str, Any]]:
+    def embed(self, input: List[str], **kwargs) -> List[Dict[str, Any]]:
         """
         Generate sparse embeddings for query texts.
 
         Args:
-            texts: List of query texts to embed
-            prompt: Optional instruction prompt (may not be used by sparse models)
+            input: List of query texts to embed
             **kwargs: Additional parameters (model-specific)
 
         Returns:
@@ -123,9 +120,8 @@ class SparseEmbeddingModel(BaseEmbeddingModel):
             self.load()
 
         try:
-            tensors = self.model.encode_query(texts, **kwargs)
+            tensors = self.model.encode(input, **kwargs)
 
-            # Convert tensors to sparse dict format
             results = []
             for tensor in tensors:
                 sparse_dict = self._tensor_to_sparse_dict(tensor)
@@ -135,43 +131,5 @@ class SparseEmbeddingModel(BaseEmbeddingModel):
 
         except Exception as e:
             error_msg = f"Query embedding generation failed: {str(e)}"
-            logger.error(error_msg)
-            raise EmbeddingGenerationError(self.model_id, error_msg)
-
-    def embed_documents(
-        self, texts: List[str], prompt: Optional[str] = None, **kwargs
-    ) -> List[Dict[str, Any]]:
-        """
-        Generate sparse embeddings for document texts.
-
-        Args:
-            texts: List of document texts to embed
-            prompt: Optional instruction prompt (may not be used by sparse models)
-            **kwargs: Additional parameters (model-specific)
-
-        Returns:
-            List of sparse embeddings as dicts with 'indices' and 'values'
-
-        Raises:
-            RuntimeError: If model is not loaded
-            EmbeddingGenerationError: If embedding generation fails
-        """
-        if not self._loaded or self.model is None:
-            self.load()
-
-        try:
-            # Encode documents
-            tensors = self.model.encode_document(texts, **kwargs)
-
-            # Convert tensors to sparse dict format
-            results = []
-            for tensor in tensors:
-                sparse_dict = self._tensor_to_sparse_dict(tensor)
-                results.append(sparse_dict)
-
-            return results
-
-        except Exception as e:
-            error_msg = f"Document embedding generation failed: {str(e)}"
             logger.error(error_msg)
             raise EmbeddingGenerationError(self.model_id, error_msg)

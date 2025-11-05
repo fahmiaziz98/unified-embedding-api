@@ -122,10 +122,11 @@ def extract_embedding_kwargs(request: BaseModel) -> Dict[str, Any]:
 
     # Extract extra fields (excluding standard fields)
     standard_fields = {
-        "text",
-        "texts",
-        "model_id",
-        "prompt",
+        "input",
+        "model",
+        "encoding_format",
+        "dimensions",
+        "user",
         "options",
         "query",
         "documents",
@@ -138,3 +139,14 @@ def extract_embedding_kwargs(request: BaseModel) -> Dict[str, Any]:
             kwargs[key] = value
 
     return kwargs
+
+
+def estimate_tokens(text: str) -> int:
+    """Estimate token count (simple approximation)."""
+    # Simple heuristic: ~4 characters per token
+    return max(1, len(text) // 4)
+
+
+def count_tokens_batch(texts: List[str]) -> int:
+    """Count tokens for batch of texts."""
+    return sum(estimate_tokens(text) for text in texts)

@@ -38,7 +38,7 @@ async def root(settings=Depends(get_settings)):
         RootResponse with API information
     """
     return RootResponse(
-        message=f"{settings.APP_NAME} - Dense & Sparse Embeddings",
+        message=f"{settings.APP_NAME}",
         version=settings.VERSION,
         docs_url="/docs",
     )

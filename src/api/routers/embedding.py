@@ -6,13 +6,14 @@ multiple texts in a single request.
 """
 
 import time
-from typing import Union
 from fastapi import APIRouter, Depends, HTTPException, status
 from loguru import logger
 
 from src.models.schemas import (
     EmbedRequest,
     DenseEmbedResponse,
+    EmbeddingObject,
+    TokenUsage,
     SparseEmbedResponse,
     SparseEmbedding,
 )
@@ -24,17 +25,17 @@ from src.core.exceptions import (
     ValidationError,
 )
 from src.api.dependencies import get_model_manager
-from src.utils.validators import extract_embedding_kwargs, validate_texts
+from src.utils.validators import extract_embedding_kwargs, validate_texts, count_tokens_batch
 from src.config.settings import get_settings
 
 
-router = APIRouter(prefix="/embeddings", tags=["embeddings"])
+router = APIRouter(tags=["embeddings"])
 
 
 @router.post(
-    "/embed",
-    response_model=Union[DenseEmbedResponse, SparseEmbedResponse],
-    summary="Generate single/batch embeddings spesialization document",
+    "/embeddings",
+    response_model=DenseEmbedResponse,
+    summary="Generate single/batch embeddings",
     description="Generate embeddings for multiple texts in a single request",
 )
 async def create_embeddings_document(
@@ -45,75 +46,62 @@ async def create_embeddings_document(
     """
     Generate embeddings for multiple texts.
 
-    This endpoint efficiently processes multiple texts in a single batch,
-    reducing overhead compared to multiple single requests.
-
     Args:
-        request: BatchEmbedRequest with texts, model_id, and optional parameters
+        request: BatchEmbedRequest with input, model, and optional parameters
         manager: Model manager dependency
         settings: Application settings
 
     Returns:
-        DenseEmbedResponse or SparseEmbedResponse depending on model type
-
+        DenseEmbedResponse 
     Raises:
         HTTPException: On validation or generation errors
     """
     try:
         # Validate input
         validate_texts(
-            request.texts,
+            request.input,
             max_length=settings.MAX_TEXT_LENGTH,
             max_batch_size=settings.MAX_BATCH_SIZE,
         )
-
-        # Extract kwargs
         kwargs = extract_embedding_kwargs(request)
 
-        # Get model
-        model = manager.get_model(request.model_id)
-        config = manager.model_configs[request.model_id]
+        model = manager.get_model(request.model)
+        config = manager.model_configs[request.model]
 
         start_time = time.time()
 
-        # Generate embeddings based on model type
-        if config.type == "sparse-embeddings":
-            # Sparse batch embeddings
-            sparse_results = model.embed_documents(
-                texts=request.texts, prompt=request.prompt, **kwargs
+        if config.type == "embeddings":
+            embeddings = model.embed(
+                input=request.input, **kwargs
             )
             processing_time = time.time() - start_time
 
-            # Convert to SparseEmbedding objects
-            sparse_embeddings = []
-            for idx, sparse_result in enumerate(sparse_results):
-                sparse_embeddings.append(
-                    SparseEmbedding(
-                        text=request.texts[idx],
-                        indices=sparse_result["indices"],
-                        values=sparse_result["values"],
+            data = []
+            for idx, embedding in enumerate(embeddings):
+                data.append(
+                    EmbeddingObject(
+                        object="embedding",
+                        embedding=embedding,
+                        index=idx,
                     )
                 )
-
-            response = SparseEmbedResponse(
-                embeddings=sparse_embeddings,
-                count=len(sparse_embeddings),
-                model_id=request.model_id,
-                processing_time=processing_time,
+            
+            # Calculate token usage
+            token_usage = TokenUsage(
+                prompt_tokens=count_tokens_batch(request.input),
+                total_tokens=count_tokens_batch(request.input),
             )
-        else:
-            # Dense batch embeddings
-            embeddings = model.embed_documents(
-                texts=request.texts, prompt=request.prompt, **kwargs
-            )
-            processing_time = time.time() - start_time
 
             response = DenseEmbedResponse(
-                embeddings=embeddings,
-                dimension=len(embeddings[0]) if embeddings else 0,
-                count=len(embeddings),
-                model_id=request.model_id,
-                processing_time=processing_time,
+                object="list",
+                data=data,
+                model=request.model,
+                usage=token_usage,
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Model '{request.model}' is not a dense model. Type: {config.type}",
             )
 
         logger.info(
@@ -138,54 +126,43 @@ async def create_embeddings_document(
 
 
 @router.post(
-    "/query",
-    response_model=Union[DenseEmbedResponse, SparseEmbedResponse],
-    summary="Generate single/batch embeddings spesialization query",
+    "/embed_sparse",
+    response_model=SparseEmbedResponse,
+    summary="Generate single/batch sparse embeddings",
     description="Generate embedding for a multiple query text",
 )
-async def create_query_embedding(
+async def create_sparse_embedding(
     request: EmbedRequest,
     manager: ModelManager = Depends(get_model_manager),
 ):
     """
-    Generate a single/batch query embedding.
-
-    This endpoint creates embeddings optimized for search queries.
-    Some models differentiate between query and document embeddings.
+    Generate a single/batch sparse embedding.
 
     Args:
-        request: EmbedRequest with text, model_id, and optional parameters
+        request: EmbedRequest with input, model, and optional parameters
         manager: Model manager dependency
-        settings: Application settings
 
     Returns:
-        DenseEmbedResponse or SparseEmbedResponse depending on model type
+        SparseEmbedResponse 
 
     Raises:
         HTTPException: On validation or generation errors
     """
     try:
-        # Validate input
         validate_texts(request.texts)
-
-        # Extract kwargs
         kwargs = extract_embedding_kwargs(request)
 
-        # Get model
         model = manager.get_model(request.model_id)
         config = manager.model_configs[request.model_id]
 
         start_time = time.time()
 
-        # Generate embedding based on model type
         if config.type == "sparse-embeddings":
-            # Sparse embedding
-            sparse_results = model.embed_query(
-                texts=request.texts, prompt=request.prompt, **kwargs
+            sparse_results = model.embed(
+                input=request.input, **kwargs
             )
             processing_time = time.time() - start_time
 
-            # Convert to SparseEmbedding objects
             sparse_embeddings = []
             for idx, sparse_result in enumerate(sparse_results):
                 sparse_embeddings.append(
@@ -202,19 +179,11 @@ async def create_query_embedding(
                 model_id=request.model_id,
                 processing_time=processing_time,
             )
+        
         else:
-            # Dense batch embeddings
-            embeddings = model.embed_documents(
-                texts=request.texts, prompt=request.prompt, **kwargs
-            )
-            processing_time = time.time() - start_time
-
-            response = DenseEmbedResponse(
-                embeddings=embeddings,
-                dimension=len(embeddings[0]) if embeddings else 0,
-                count=len(embeddings),
-                model_id=request.model_id,
-                processing_time=processing_time,
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Model '{request.model_id}' is not a sparse model. Type: {config.type}",
             )
 
         logger.info(

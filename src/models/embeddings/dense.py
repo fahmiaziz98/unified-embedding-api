@@ -88,15 +88,12 @@ class DenseEmbeddingModel(BaseEmbeddingModel):
         except Exception as e:
             logger.error(f"Error unloading model {self.model_id}: {e}")
 
-    def embed_query(
-        self, texts: List[str], prompt: Optional[str] = None, **kwargs
-    ) -> List[List[float]]:
+    def embed(self, input: List[str], **kwargs) -> List[List[float]]:
         """
         Generate embeddings for query texts.
 
         Args:
-            texts: List of query texts to embed
-            prompt: Optional instruction prompt
+            input: List of query texts to embed
             **kwargs: Additional parameters for sentence-transformers:
                 - normalize_embeddings (bool)
                 - batch_size (int)
@@ -114,8 +111,8 @@ class DenseEmbeddingModel(BaseEmbeddingModel):
             self.load()
 
         try:
-            embeddings = self.model.encode_query(texts, prompt=prompt, **kwargs)
-            # Convert to list format
+            embeddings = self.model.encode(input, **kwargs)
+            
             return [
                 emb.tolist() if hasattr(emb, "tolist") else list(emb)
                 for emb in embeddings
@@ -123,44 +120,5 @@ class DenseEmbeddingModel(BaseEmbeddingModel):
 
         except Exception as e:
             error_msg = f"Query embedding generation failed: {str(e)}"
-            logger.error(error_msg)
-            raise EmbeddingGenerationError(self.model_id, error_msg)
-
-    def embed_documents(
-        self, texts: List[str], prompt: Optional[str] = None, **kwargs
-    ) -> List[List[float]]:
-        """
-        Generate embeddings for document texts.
-
-        Args:
-            texts: List of document texts to embed
-            prompt: Optional instruction prompt
-            **kwargs: Additional parameters for sentence-transformers:
-                - normalize_embeddings (bool)
-                - batch_size (int)
-                - convert_to_numpy (bool)
-                - etc.
-
-        Returns:
-            List of embedding vectors
-
-        Raises:
-            RuntimeError: If model is not loaded
-            EmbeddingGenerationError: If embedding generation fails
-        """
-        if not self._loaded or self.model is None:
-            self.load()
-
-        try:
-            embeddings = self.model.encode_document(texts, prompt=prompt, **kwargs)
-
-            # Convert to list format
-            return [
-                emb.tolist() if hasattr(emb, "tolist") else list(emb)
-                for emb in embeddings
-            ]
-
-        except Exception as e:
-            error_msg = f"Document embedding generation failed: {str(e)}"
             logger.error(error_msg)
             raise EmbeddingGenerationError(self.model_id, error_msg)

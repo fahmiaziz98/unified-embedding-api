@@ -5,7 +5,7 @@ This module defines all Pydantic models for API responses,
 ensuring consistent output format across all endpoints.
 """
 
-from typing import List
+from typing import List, Literal
 from pydantic import BaseModel, Field
 from .common import SparseEmbedding, ModelInfo
 
@@ -16,45 +16,51 @@ class BaseEmbedResponse(BaseModel):
 
     Attributes:
         model_id: Identifier of the model used
-        processing_time: Time taken to process the request (seconds)
     """
 
-    model_id: str = Field(..., description="Model identifier used")
-    processing_time: float = Field(..., description="Processing time in seconds", ge=0)
+    model: str = Field(..., description="Model identifier used")
+
+
+class EmbeddingObject(BaseModel):
+    """Single embedding object."""
+    object: Literal["embedding"] = "embedding"
+    embedding: List[float] = Field(..., description="Embedding vector")
+    index: int = Field(..., description="Index of the embedding")
+
+
+class TokenUsage(BaseModel):
+    """Usage statistics."""
+    prompt_tokens: int
+    total_tokens: int
 
 
 class DenseEmbedResponse(BaseEmbedResponse):
     """
     Response model for single/batch dense embeddings.
 
-    Used for /embed & /query endpoint with dense models.
+    Used for /embeddings endpoint dense models.
 
     Attributes:
-        embeddings: List of generated dense embedding vectors
-        dimension: Dimensionality of the embeddings
-        count: Number of embeddings returned
-        model_id: Identifier of the model used
-        processing_time: Time taken to process the request
+        data: List of generated dense embeddings
+        model: Identifier of the model used
+        usage: Usage statistics
+        
     """
+    object: Literal["list"] = "list"
+    data: List[EmbeddingObject]
+    model_id: str = Field(..., description="Model identifier used")
+    usage: TokenUsage = Field(..., description="Usage statistics")
 
-    embeddings: List[List[float]] = Field(
-        ..., description="List of dense embedding vectors"
-    )
-    dimension: int = Field(..., description="Embedding dimensionality", ge=1)
-    count: int = Field(..., description="Number of embeddings", ge=1)
-
-    class Config:
+    class Config:        
         json_schema_extra = {
             "example": {
-                "embeddings": [
-                    [0.123, -0.456, 0.789],
-                    [0.234, 0.567, -0.890],
-                    [0.345, -0.678, 0.901],
+                "object": "list",
+                "data": [
+                    {"object": "embedding", "embedding": [0.1, 0.2, 0.3], "index": 0},
+                    {"object": "embedding", "embedding": [0.4, 0.5, 0.6], "index": 1},
                 ],
-                "dimension": 768,
-                "count": 3,
-                "model_id": "qwen3-0.6b",
-                "processing_time": 0.1245,
+                "model": "qwen3-0.6b",
+                "usage": {"prompt_tokens": 10, "total_tokens": 10},
             }
         }
 
@@ -63,13 +69,12 @@ class SparseEmbedResponse(BaseEmbedResponse):
     """
     Response model for single/batch sparse embeddings.
 
-    Used for /embed and /query endpoint with sparse models.
+    Used for /embed_sparse endpoint sparse models.
 
     Attributes:
         embeddings: List of generated sparse embeddings
         count: Number of embeddings returned
-        model_id: Identifier of the model used
-        processing_time: Time taken to process the request
+        model: Identifier of the model used
     """
 
     embeddings: List[SparseEmbedding] = Field(

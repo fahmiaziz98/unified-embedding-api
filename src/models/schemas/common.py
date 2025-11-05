@@ -126,6 +126,7 @@ class EmbeddingOptions(BaseModel):
 
     Attributes:
         normalize_embeddings: L2 normalize output embeddings
+        prompt: Optional instruction prompt for the model
         batch_size: Batch size for processing
         convert_to_numpy: Return numpy arrays instead of lists
         precision: Computation precision
@@ -136,6 +137,9 @@ class EmbeddingOptions(BaseModel):
     )
     batch_size: Optional[int] = Field(
         None, ge=1, le=256, description="Batch size for processing texts"
+    )
+    prompt: Optional[str] = Field(
+        None, description="Optional instruction prompt for the model", max_length=512
     )
     convert_to_numpy: Optional[bool] = Field(
         None, description="Return numpy arrays instead of Python lists"

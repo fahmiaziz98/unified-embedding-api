@@ -61,8 +61,8 @@ class BaseEmbeddingModel(ABC):
         pass
 
     @abstractmethod
-    def embed_query(
-        self, texts: List[str], prompt: Optional[str] = None, **kwargs
+    def embed(
+        self, input: List[str], **kwargs
     ) -> Union[List[List[float]], List[Dict[str, Any]]]:
         """
         Generate embeddings for query texts.
@@ -71,43 +71,14 @@ class BaseEmbeddingModel(ABC):
         (e.g., asymmetric retrieval models).
 
         Args:
-            texts: List of query texts to embed (REQUIRED)
-            prompt: Optional instruction prompt for the model
+            input: List of query texts to embed (REQUIRED)
             **kwargs: Additional model-specific parameters, such as:
                 - normalize_embeddings (bool): L2 normalize output vectors
                 - batch_size (int): Batch size for processing
+                - prompt:  instruction prompt for the model
                 - max_length (int): Maximum token sequence length
                 - convert_to_numpy (bool): Return numpy arrays instead of lists
                 - precision (str): Computation precision ('float32', 'int8', etc.)
-
-        Returns:
-            List of embeddings (format depends on model type)
-            - Dense: List[List[float]]
-            - Sparse: List[Dict[str, Any]] with 'indices' and 'values'
-
-        Raises:
-            RuntimeError: If model is not loaded
-            ValueError: If input validation fails
-
-        Note:
-            Available kwargs depend on the underlying model implementation.
-            Check sentence-transformers documentation for full parameter list.
-        """
-        pass
-
-    @abstractmethod
-    def embed_documents(
-        self, texts: List[str], prompt: Optional[str] = None, **kwargs
-    ) -> Union[List[List[float]], List[Dict[str, Any]]]:
-        """
-        Generate embeddings for document texts.
-
-        Document embeddings are used for indexing and storage.
-
-        Args:
-            texts: List of document texts to embed (REQUIRED)
-            prompt: Optional instruction prompt for the model
-            **kwargs: Additional model-specific parameters (see embed_query for details)
 
         Returns:
             List of embeddings (format depends on model type)

@@ -70,9 +70,8 @@ class EmbedRequest(BaseEmbedRequest):
         """Validate that all texts are non-empty."""
         if not v:
             raise ValueError("Input cannot be empty")
-        
-        return v
 
+        return v
 
     class Config:
         json_schema_extra = {

@@ -28,31 +28,10 @@ from src.api.dependencies import get_model_manager
 from src.utils.validators import (
     extract_embedding_kwargs,
     count_tokens_batch,
+    ensure_model_type,
 )
 
 router = APIRouter(tags=["embeddings"])
-
-
-def _ensure_model_type(config, expected_type: str, model_id: str) -> None:
-    """
-    Validate that the model configuration matches the expected type.
-
-    Raises:
-        HTTPException: If the model is missing or the type does not match.
-    """
-    if config is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Model '{model_id}' not found.",
-        )
-    if config.type != expected_type:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Model '{model_id}' is not a {expected_type.replace('-', ' ')} "
-                f"model. Detected type: {config.type}"
-            ),
-        )
 
 
 @router.post(
@@ -86,7 +65,7 @@ async def create_embeddings(
         model = manager.get_model(request.model)
         config = manager.model_configs.get(request.model)
 
-        _ensure_model_type(config, "embeddings", request.model)
+        ensure_model_type(config, "embeddings", request.model)
 
         start_time = time.time()
 
@@ -166,7 +145,7 @@ async def create_sparse_embedding(
         model = manager.get_model(request.model)
         config = manager.model_configs.get(request.model)
 
-        _ensure_model_type(config, "sparse-embeddings", request.model)
+        ensure_model_type(config, "sparse-embeddings", request.model)
 
         start_time = time.time()
 

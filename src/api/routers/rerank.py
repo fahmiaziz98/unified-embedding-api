@@ -18,7 +18,7 @@ from src.core.exceptions import (
     ValidationError,
 )
 from src.api.dependencies import get_model_manager
-from src.utils.validators import extract_embedding_kwargs
+from src.utils.validators import extract_embedding_kwargs, ensure_model_type
 
 router = APIRouter(prefix="/rerank", tags=["rerank"])
 
@@ -37,7 +37,7 @@ async def rerank_documents(
     Rerank documents based on a query.
 
     This endpoint processes a list of documents and returns them ranked
-    according to their relevance to the query.
+    according to their relevance to the query. 
 
     Args:
         request: The request object containing the query and documents to rank
@@ -49,7 +49,7 @@ async def rerank_documents(
     Raises:
         HTTPException: If there are validation errors, model loading issues, or unexpected errors
     """
-    # Filter out empty documents and keep original indices
+
     valid_docs = [
         (i, doc.strip()) for i, doc in enumerate(request.documents) if doc.strip()
     ]
@@ -67,14 +67,10 @@ async def rerank_documents(
         kwargs.pop("documents", None)
         kwargs.pop("top_k", None)
 
-        model = manager.get_model(request.model_id)
-        config = manager.model_configs[request.model_id]
+        model = manager.get_model(request.model)
+        config = manager.model_configs[request.model]
 
-        if config.type != "rerank":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Model '{request.model_id}' is not a rerank model. Type: {config.type}",
-            )
+        ensure_model_type(config, "rerank", request.model)
 
         start = time.time()
 
@@ -104,12 +100,11 @@ async def rerank_documents(
 
         logger.info(
             f"Reranked {len(results)} documents in {processing_time:.3f}s "
-            f"(model: {request.model_id})"
+            f"(model: {request.model})"
         )
 
         return RerankResponse(
-            model_id=request.model_id,
-            processing_time=processing_time,
+            model=request.model,
             query=request.query,
             results=results,
         )

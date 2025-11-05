@@ -7,7 +7,12 @@ ensuring data quality and preventing abuse.
 
 from typing import List, Dict, Any
 from pydantic import BaseModel
-from src.core.exceptions import TextTooLongError, BatchTooLargeError, ValidationError
+from src.core.exceptions import (
+    TextTooLongError,
+    ValidationError,
+    ModelNotFoundError,
+    ModelTypeError,
+)
 
 
 def validate_text(text: str, max_length: int = 8192, allow_empty: bool = False) -> None:
@@ -30,44 +35,18 @@ def validate_text(text: str, max_length: int = 8192, allow_empty: bool = False) 
         raise TextTooLongError(len(text), max_length)
 
 
-def validate_texts(
-    texts: List[str],
-    max_length: int = 8192,
-    max_batch_size: int = 100,
-    allow_empty: bool = False,
-) -> None:
+def ensure_model_type(config, expected_type: str, model_id: str) -> None:
     """
-    Validate a list of text inputs.
-
-    Args:
-        texts: List of texts to validate
-        max_length: Maximum allowed length per text
-        max_batch_size: Maximum number of texts in batch
-        allow_empty: Whether to allow empty strings
+    Validate that the model configuration matches the expected type.
 
     Raises:
-        ValidationError: If texts list is empty or contains invalid items
-        BatchTooLargeError: If batch size exceeds max_batch_size
-        TextTooLongError: If any text exceeds max_length
+        HTTPException: If the model is missing or the type does not match.
     """
-    if not texts:
-        raise ValidationError("texts", "Texts list cannot be empty")
+    if config is None:
+        raise ModelNotFoundError(model_id)
 
-    if len(texts) > max_batch_size:
-        raise BatchTooLargeError(len(texts), max_batch_size)
-
-    # Validate each text
-    for idx, text in enumerate(texts):
-        if not isinstance(text, str):
-            raise ValidationError(
-                f"texts[{idx}]", f"Expected string, got {type(text).__name__}"
-            )
-
-        if not allow_empty and not text.strip():
-            raise ValidationError(f"texts[{idx}]", "Text cannot be empty")
-
-        if len(text) > max_length:
-            raise TextTooLongError(len(text), max_length)
+    if config.type != expected_type:
+        raise ModelTypeError(config, model_id, expected_type)
 
 
 def validate_model_id(model_id: str, available_models: List[str]) -> None:

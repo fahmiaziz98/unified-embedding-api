@@ -33,6 +33,18 @@ class ModelNotLoadedError(EmbeddingAPIException):
         self.model_id = model_id
 
 
+class ModelTypeError(EmbeddingAPIException):
+    """Raise when model not configuration"""
+
+    def __init__(self, config, model_id: str, expected_type: str):
+        message = (
+            f"Model '{model_id}' is not a {expected_type.replace('-', ' ')} "
+            f"model. Detected type: {config.type}"
+        )
+        super().__init__(message, status_code=404)
+        self.model_id = model_id
+
+
 class ModelLoadError(EmbeddingAPIException):
     """Raised when a model fails to load."""
 

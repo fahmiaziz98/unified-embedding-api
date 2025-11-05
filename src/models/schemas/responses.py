@@ -139,7 +139,6 @@ class RerankResponse(BaseEmbedResponse):
             "example": {
                 "model_id": "jina-reranker-v3",
                 "query": "Rerank document",
-                "processing_time": 0.56,
                 "results": [
                     {"text": "document 1", "score": 0.6, "index": 0},
                     {"text": "document 2", "score": 0.5, "index": 1},

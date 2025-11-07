@@ -194,7 +194,8 @@ unified-embedding-api/
    git push
    ```
 
-6. **Access API**
+6. **Access API** 
+   - Click **⋯** → **Embed this Space** → copy **Direct URL**
    - Base URL: `https://YOUR_USERNAME-api-embedding.hf.space`
    - Documentation: `https://YOUR_USERNAME-api-embedding.hf.space/docs`
 
@@ -341,14 +342,12 @@ for result in results:
 | `/api/v1/models` | GET | List available models | Partial |
 | `/health` | GET | Health check | No |
 
-**Detailed API documentation:** [docs/API.md](docs/API.md)
-
 ### Request Format
 
 **Embeddings (OpenAI-compatible):**
 ```json
 {
-  "input": "text" | ["text1", "text2"],
+  "input": "text" ["text1", "text2"],
   "model": "model-identifier",
   "encoding_format": "float"
 }
@@ -357,7 +356,7 @@ for result in results:
 **Sparse Embeddings:**
 ```json
 {
-  "input": "text" | ["text1", "text2"],
+  "input": "text" ["text1", "text2"],
   "model": "splade-model-id"
 }
 ```
@@ -381,7 +380,7 @@ for result in results:
   "data": [
     {
       "object": "embedding",
-      "embedding": [0.123, -0.456, ...],
+      "embedding": [0.123, -0.456,],
       "index": 0
     }
   ],

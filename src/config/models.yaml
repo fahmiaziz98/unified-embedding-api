@@ -7,8 +7,8 @@ models:
     name: "google/embeddinggemma-300M"
     type: "embeddings"
 
-  splade-pp-v2:
-    name: "prithivida/Splade_PP_en_v2"
+  splade-large-doc:
+    name: "naver/efficient-splade-VI-BT-large-doc"
     type: "sparse-embeddings"
 
   splade-large-query:

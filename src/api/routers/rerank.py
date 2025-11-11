@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from src.models.schemas import RerankRequest, RerankResult
+from src.models.schemas import RerankRequest
 from src.core.manager import ModelManager
 from src.core.exceptions import (
     ModelNotFoundError,
@@ -93,10 +93,12 @@ async def rerank_documents(
                 original_idx = valid_docs[doc_idx][0]  # Original index
                 doc_text = documents_list[doc_idx]
                 score = rank_result["score"]
-
-                results.append(
-                    RerankResult(text=doc_text, score=score, index=original_idx)
-                )
+        
+                results.append({
+                    "text": doc_text,
+                    "score": float(score),     
+                    "index": int(original_idx)
+                })
 
         logger.info(
             f"Reranked {len(results)} documents in {processing_time:.3f}s "

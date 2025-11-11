@@ -19,7 +19,6 @@ from .responses import (
     DenseEmbedResponse,
     EmbeddingObject,
     TokenUsage,
-    RerankResult,
     ModelsListResponse,
     RootResponse,
 )
@@ -39,7 +38,6 @@ __all__ = [
     "DenseEmbedResponse",
     "EmbeddingObject",
     "TokenUsage",
-    "RerankResult",
     "ModelsListResponse",
     "RootResponse",
 ]

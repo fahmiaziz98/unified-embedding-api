@@ -66,22 +66,7 @@ class DenseEmbedResponse(BaseEmbedResponse):
                 "usage": {"prompt_tokens": 10, "total_tokens": 10},
             }
         }
-
-
-class RerankResult(BaseModel):
-    """
-    Single reranking result.
-
-    Attributes:
-        text: The document text
-        score: Relevance score from the reranking model
-        index: Original index of the document in input list
-    """
-
-    text: str = Field(..., description="Document text")
-    score: float = Field(..., description="Relevance score")
-    index: int = Field(..., description="Original index of the document")
-
+        
 
 class ModelsListResponse(BaseModel):
     """

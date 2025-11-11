@@ -1,7 +1,7 @@
 # Read the doc: https://huggingface.co/docs/hub/spaces-sdks-docker
 # you will also find guides on how best to write your Dockerfile
 
-FROM python:3.10-slim
+FROM python:3.9-slim
 
 RUN useradd -m -u 1000 user
 USER user

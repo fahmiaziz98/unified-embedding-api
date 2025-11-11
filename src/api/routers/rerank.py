@@ -7,9 +7,10 @@ It accepts a list of documents and returns a ranked list based on relevance to t
 
 import time
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from loguru import logger
 
-from src.models.schemas import RerankRequest, RerankResponse, RerankResult
+from src.models.schemas import RerankRequest, RerankResult
 from src.core.manager import ModelManager
 from src.core.exceptions import (
     ModelNotFoundError,
@@ -25,14 +26,13 @@ router = APIRouter(prefix="/rerank", tags=["rerank"])
 
 @router.post(
     "",
-    response_model=RerankResponse,
     summary="Rerank documents",
     description="Reranks the provided documents based on the given query.",
 )
 async def rerank_documents(
     request: RerankRequest,
     manager: ModelManager = Depends(get_model_manager),
-) -> RerankResponse:
+):
     """
     Rerank documents based on a query.
 
@@ -103,11 +103,7 @@ async def rerank_documents(
             f"(model: {request.model})"
         )
 
-        return RerankResponse(
-            model=request.model,
-            query=request.query,
-            results=results,
-        )
+        return JSONResponse(content=results)
 
     except (ValidationError, ModelNotFoundError) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)

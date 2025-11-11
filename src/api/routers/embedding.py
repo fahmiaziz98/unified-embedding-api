@@ -116,7 +116,7 @@ async def create_openai_embeddings(
 
 @router.post(
     "/embed",
-    tags=["embeddings"],
+    tags=["Embeddings"],
     summary="Generate single/batch dense embeddings",
     description="Generate embedding for a multiple query text",
 )
@@ -176,7 +176,7 @@ async def create_embeddings(
 
 @router.post(
     "/embed_sparse",
-    tags=["embeddings"],
+    tags=["Embeddings"],
     summary="Generate single/batch sparse embeddings",
     description="Generate embedding for a multiple query text",
 )

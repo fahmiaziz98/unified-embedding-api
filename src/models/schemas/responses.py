@@ -83,31 +83,6 @@ class RerankResult(BaseModel):
     index: int = Field(..., description="Original index of the document")
 
 
-class RerankResponse(BaseEmbedResponse):
-    """
-    Response model for document reranking.
-
-    Attributes:
-        results: List of reranked documents with scores
-        query: The original search query
-    """
-
-    query: str = Field(..., description="Original search query")
-    results: List[RerankResult] = Field(..., description="List of reranked documents")
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "model_id": "jina-reranker-v3",
-                "query": "Rerank document",
-                "results": [
-                    {"text": "document 1", "score": 0.6, "index": 0},
-                    {"text": "document 2", "score": 0.5, "index": 1},
-                ],
-            }
-        }
-
-
 class ModelsListResponse(BaseModel):
     """
     Response model for listing available models.

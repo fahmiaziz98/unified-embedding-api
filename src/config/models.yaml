@@ -7,13 +7,13 @@ models:
     name: "google/embeddinggemma-300M"
     type: "embeddings"
 
-  splade-large-doc:
-    name: "naver/efficient-splade-VI-BT-large-doc"
-    type: "sparse-embeddings"
-
-#  splade-large-query:
-#    name: "naver/efficient-splade-VI-BT-large-query"
+#  splade-large-doc:
+#    name: "naver/efficient-splade-VI-BT-large-doc"
 #    type: "sparse-embeddings"
+
+  splade-large-query:
+    name: "naver/efficient-splade-VI-BT-large-query"
+    type: "sparse-embeddings"
     
   bge-v2-m3:
     name: "BAAI/bge-reranker-v2-m3"

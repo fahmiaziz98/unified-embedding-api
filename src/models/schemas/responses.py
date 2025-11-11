@@ -7,7 +7,7 @@ ensuring consistent output format across all endpoints.
 
 from typing import List, Literal
 from pydantic import BaseModel, Field
-from .common import SparseEmbedding, ModelInfo
+from .common import ModelInfo
 
 
 class BaseEmbedResponse(BaseModel):
@@ -64,45 +64,6 @@ class DenseEmbedResponse(BaseEmbedResponse):
                 ],
                 "model": "qwen3-0.6b",
                 "usage": {"prompt_tokens": 10, "total_tokens": 10},
-            }
-        }
-
-
-class SparseEmbedResponse(BaseEmbedResponse):
-    """
-    Response model for single/batch sparse embeddings.
-
-    Used for /embed_sparse endpoint sparse models.
-
-    Attributes:
-        embeddings: List of generated sparse embeddings
-        count: Number of embeddings returned
-        model: Identifier of the model used
-    """
-
-    embeddings: List[SparseEmbedding] = Field(
-        ..., description="List of sparse embeddings"
-    )
-    count: int = Field(..., description="Number of embeddings", ge=1)
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "embeddings": [
-                    {
-                        "indices": [10, 25, 42],
-                        "values": [0.85, 0.62, 0.91],
-                        "text": "first text",
-                    },
-                    {
-                        "indices": [15, 30, 50],
-                        "values": [0.73, 0.88, 0.65],
-                        "text": "second text",
-                    },
-                ],
-                "count": 2,
-                "model_id": "splade-pp-v2",
-                "processing_time": 0.0892,
             }
         }
 

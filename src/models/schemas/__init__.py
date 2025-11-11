@@ -6,7 +6,6 @@ the application.
 """
 
 from .common import (
-    SparseEmbedding,
     ModelInfo,
     HealthStatus,
     ErrorResponse,
@@ -18,7 +17,6 @@ from .requests import BaseEmbedRequest, EmbedRequest, RerankRequest
 from .responses import (
     BaseEmbedResponse,
     DenseEmbedResponse,
-    SparseEmbedResponse,
     RerankResponse,
     EmbeddingObject,
     TokenUsage,
@@ -29,7 +27,6 @@ from .responses import (
 
 __all__ = [
     # Common
-    "SparseEmbedding",
     "ModelInfo",
     "HealthStatus",
     "ErrorResponse",
@@ -43,7 +40,6 @@ __all__ = [
     "DenseEmbedResponse",
     "EmbeddingObject",
     "TokenUsage",
-    "SparseEmbedResponse",
     "RerankResponse",
     "RerankResult",
     "ModelsListResponse",

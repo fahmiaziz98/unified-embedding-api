@@ -7,6 +7,7 @@ multiple texts in a single request.
 
 import time
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from loguru import logger
 
 from src.models.schemas import (
@@ -14,8 +15,6 @@ from src.models.schemas import (
     DenseEmbedResponse,
     EmbeddingObject,
     TokenUsage,
-    SparseEmbedResponse,
-    SparseEmbedding,
 )
 from src.core.manager import ModelManager
 from src.core.exceptions import (
@@ -31,16 +30,17 @@ from src.utils.validators import (
     ensure_model_type,
 )
 
-router = APIRouter(tags=["embeddings"])
+router = APIRouter()
 
 
 @router.post(
     "/embeddings",
     response_model=DenseEmbedResponse,
+    tags=["OpenAI Compatible"],
     summary="Generate single/batch embeddings",
     description="Generate embeddings for multiple texts in a single request",
 )
-async def create_embeddings(
+async def create_openai_embeddings(
     request: EmbedRequest, manager: ModelManager = Depends(get_model_manager)
 ):
     """
@@ -107,6 +107,66 @@ async def create_embeddings(
     except EmbeddingGenerationError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:
+        logger.exception("Unexpected error in create_openai_embeddings")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create embeddings: {str(e)}",
+        )
+
+
+@router.post(
+    "/embed",
+    tags=["embeddings"],
+    summary="Generate single/batch dense embeddings",
+    description="Generate embedding for a multiple query text",
+)
+async def create_embeddings(
+    request: EmbedRequest, manager: ModelManager = Depends(get_model_manager)
+):
+    """
+    Generate embeddings for multiple texts.
+
+    The endpoint validates the request, checks that the requested
+    model is a dense embedding model, and returns a
+    :class:`DenseEmbedResponse`.
+
+    Raises:
+        HTTPException: On validation or generation errors
+    """
+
+    texts = [request.input] if isinstance(request.input, str) else request.input
+
+    if not texts or not isinstance(texts, list):
+        raise ValidationError("Input must be a non-empty list or string.")
+
+    try:
+        kwargs = extract_embedding_kwargs(request)
+
+        model = manager.get_model(request.model)
+        config = manager.model_configs.get(request.model)
+
+        ensure_model_type(config, "embeddings", request.model)
+
+        start_time = time.time()
+
+        embeddings = model.embed(input=texts, **kwargs)
+        processing_time = time.time() - start_time
+
+        
+        logger.info(
+            f"Generated {len(texts)} embeddings "
+            f"in {processing_time:.3f}s ({len(texts) / processing_time:.1f} texts/s)"
+        )
+
+        return JSONResponse(content=embeddings)
+
+    except (ValidationError, ModelNotFoundError) as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except ModelNotLoadedError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except EmbeddingGenerationError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
         logger.exception("Unexpected error in create_embeddings")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -116,7 +176,7 @@ async def create_embeddings(
 
 @router.post(
     "/embed_sparse",
-    response_model=SparseEmbedResponse,
+    tags=["embeddings"],
     summary="Generate single/batch sparse embeddings",
     description="Generate embedding for a multiple query text",
 )
@@ -151,28 +211,18 @@ async def create_sparse_embedding(
 
         sparse_results = model.embed(input=texts, **kwargs)
         processing_time = time.time() - start_time
-
-        sparse_embeddings = [
-            SparseEmbedding(
-                text=texts[idx],
-                indices=sparse_result["indices"],
-                values=sparse_result["values"],
-            )
-            for idx, sparse_result in enumerate(sparse_results)
+        
+        formatted_embeddings = [
+            [{"index": i, "value": v} for i, v in zip(res["indices"], res["values"])]
+            for res in sparse_results
         ]
-
-        response = SparseEmbedResponse(
-            embeddings=sparse_embeddings,
-            count=len(sparse_embeddings),
-            model=request.model,
-        )
 
         logger.info(
             f"Generated {len(texts)} embeddings "
             f"in {processing_time:.3f}s ({len(texts) / processing_time:.1f} texts/s)"
         )
 
-        return response
+        return JSONResponse(content=formatted_embeddings)
 
     except (ValidationError, ModelNotFoundError) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)

@@ -5,38 +5,8 @@ This module contains Pydantic models used by both requests and responses,
 such as SparseEmbedding and ModelInfo.
 """
 
-from typing import List, Optional, Literal
+from typing import Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict
-
-
-class SparseEmbedding(BaseModel):
-    """
-    Sparse embedding representation.
-
-    Sparse embeddings are represented as two parallel arrays:
-    - indices: positions of non-zero values
-    - values: the actual values at those positions
-
-    Attributes:
-        indices: List of indices for non-zero elements
-        values: List of values corresponding to the indices
-        text: Optional original text that was embedded
-    """
-
-    indices: List[int] = Field(
-        ..., description="Indices of non-zero elements in the sparse vector"
-    )
-    values: List[float] = Field(..., description="Values corresponding to the indices")
-    text: Optional[str] = Field(None, description="Original text that was embedded")
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "indices": [10, 25, 42, 100],
-                "values": [0.85, 0.62, 0.91, 0.73],
-                "text": "example query text",
-            }
-        }
 
 
 class ModelInfo(BaseModel):

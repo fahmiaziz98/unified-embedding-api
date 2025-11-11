@@ -7,9 +7,9 @@ models:
     name: "google/embeddinggemma-300M"
     type: "embeddings"
 
-#  splade-large-doc:
-#    name: "naver/efficient-splade-VI-BT-large-doc"
-#    type: "sparse-embeddings"
+  splade-large-doc:
+    name: "naver/efficient-splade-VI-BT-large-doc"
+    type: "sparse-embeddings"
 
   splade-large-query:
     name: "naver/efficient-splade-VI-BT-large-query"

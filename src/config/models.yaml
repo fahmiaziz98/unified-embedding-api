@@ -7,12 +7,12 @@ models:
     name: "google/embeddinggemma-300M"
     type: "embeddings"
 
-  splade-large-doc:
-    name: "naver/efficient-splade-VI-BT-large-doc"
+  splade-v3-distilbert:
+    name: "naver/splade-v3-distilbert"
     type: "sparse-embeddings"
 
-  splade-large-query:
-    name: "naver/efficient-splade-VI-BT-large-query"
+  splade-pp-v2:
+    name: "prithivida/Splade_PP_en_v2"
     type: "sparse-embeddings"
     
   bge-v2-m3:

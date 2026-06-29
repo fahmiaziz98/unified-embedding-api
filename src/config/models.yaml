@@ -3,17 +3,17 @@ models:
     name: "Qwen/Qwen3-Embedding-0.6B"
     type: "embeddings"
 
-  gemma-300M:
-    name: "google/embeddinggemma-300M"
-    type: "embeddings"
+#  gemma-300M:
+#    name: "google/embeddinggemma-300M"
+#    type: "embeddings"
 
   splade-v3-distilbert:
     name: "naver/splade-v3-distilbert"
     type: "sparse-embeddings"
 
-  splade-pp-v2:
-    name: "prithivida/Splade_PP_en_v2"
-    type: "sparse-embeddings"
+#  splade-pp-v2:
+#    name: "prithivida/Splade_PP_en_v2"
+#    type: "sparse-embeddings"
     
   bge-v2-m3:
     name: "BAAI/bge-reranker-v2-m3"
